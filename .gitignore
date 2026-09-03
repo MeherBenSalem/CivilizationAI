@@ -1,0 +1,46 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea/*
+!.idea/scopes
+
+# vscode
+.vscode/
+
+# gradle
+build
+.gradle
+**/build/
+**/.gradle/
+
+# runs
+run
+runs
+**/runs/
+
+# logs / OS
+*.log
+logs/
+.DS_Store
+Thumbs.db
+
+# secrets / local env
+.env
+.env.*
+secrets.toml
+**/secrets.toml
+config/smartvillagers/
+
+# generated
+**/src/generated/
+replay_pid*.log

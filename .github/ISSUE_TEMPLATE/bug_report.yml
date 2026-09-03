@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a problem with Smart Villagers AI
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. Please do not include API keys.
+  - type: input
+    id: versions
+    attributes:
+      label: Minecraft / loader / mod version
+      placeholder: "1.21.1 / NeoForge 21.1.x / Smart Villagers AI 1.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: Redact secrets before pasting.
