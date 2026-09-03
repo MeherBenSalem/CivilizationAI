@@ -1,8 +1,7 @@
 package tn.naizo.smartvillagers.villager;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,16 +17,6 @@ public final class VillagerMemory {
     private int rapport;
 
     public record Exchange(String playerMessage, String villagerReply) {
-        public static Exchange fromNbt(CompoundTag tag) {
-            return new Exchange(tag.getString("player"), tag.getString("villager"));
-        }
-
-        public CompoundTag toNbt() {
-            CompoundTag tag = new CompoundTag();
-            tag.putString("player", playerMessage);
-            tag.putString("villager", villagerReply);
-            return tag;
-        }
     }
 
     public int rapport() {
@@ -68,44 +57,44 @@ public final class VillagerMemory {
         rapport = 0;
     }
 
-    public static VillagerMemory fromNbt(CompoundTag tag) {
-        VillagerMemory memory = new VillagerMemory();
-        if (tag == null || tag.isEmpty()) {
-            return memory;
+    public void write(ValueOutput output) {
+        output.putInt("rapport", rapport);
+        ValueOutput.ValueOutputList keys = output.childrenList("playerKeys");
+        ValueOutput players = output.child("players");
+        for (Map.Entry<UUID, List<Exchange>> entry : exchanges.entrySet()) {
+            String id = entry.getKey().toString();
+            keys.addChild().putString("id", id);
+            ValueOutput.ValueOutputList list = players.childrenList(id);
+            for (Exchange exchange : entry.getValue()) {
+                ValueOutput item = list.addChild();
+                item.putString("player", exchange.playerMessage());
+                item.putString("villager", exchange.villagerReply());
+            }
         }
-        memory.rapport = tag.getInt("rapport");
+    }
 
-        if (tag.contains("players", Tag.TAG_COMPOUND)) {
-            CompoundTag players = tag.getCompound("players");
-            for (String key : players.getAllKeys()) {
-                try {
-                    UUID playerId = UUID.fromString(key);
-                    ListTag list = players.getList(key, Tag.TAG_COMPOUND);
-                    List<Exchange> history = new ArrayList<>();
-                    for (int i = 0; i < list.size(); i++) {
-                        history.add(Exchange.fromNbt(list.getCompound(i)));
-                    }
-                    memory.exchanges.put(playerId, history);
-                } catch (IllegalArgumentException ignored) {
+    public static VillagerMemory read(ValueInput input) {
+        VillagerMemory memory = new VillagerMemory();
+        memory.rapport = input.getIntOr("rapport", 0);
+        ValueInput players = input.childOrEmpty("players");
+        for (ValueInput keyInput : input.childrenListOrEmpty("playerKeys")) {
+            String key = keyInput.getStringOr("id", "");
+            if (key.isBlank()) {
+                continue;
+            }
+            try {
+                UUID playerId = UUID.fromString(key);
+                List<Exchange> history = new ArrayList<>();
+                for (ValueInput item : players.childrenListOrEmpty(key)) {
+                    history.add(new Exchange(
+                            item.getStringOr("player", ""),
+                            item.getStringOr("villager", "")
+                    ));
                 }
+                memory.exchanges.put(playerId, history);
+            } catch (IllegalArgumentException ignored) {
             }
         }
         return memory;
-    }
-
-    public CompoundTag toNbt() {
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("rapport", rapport);
-
-        CompoundTag players = new CompoundTag();
-        for (Map.Entry<UUID, List<Exchange>> entry : exchanges.entrySet()) {
-            ListTag list = new ListTag();
-            for (Exchange exchange : entry.getValue()) {
-                list.add(exchange.toNbt());
-            }
-            players.put(entry.getKey().toString(), list);
-        }
-        tag.put("players", players);
-        return tag;
     }
 }

@@ -3,7 +3,7 @@ package tn.naizo.smartvillagers.display;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import tn.naizo.smartvillagers.DisplayMode;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
@@ -14,7 +14,7 @@ public final class ResponseDispatcher {
         SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
 
         if (config.displayMode() == DisplayMode.ACTION_BAR) {
-            player.displayClientMessage(message, true);
+            player.sendSystemMessage(message, true);
             return;
         }
 

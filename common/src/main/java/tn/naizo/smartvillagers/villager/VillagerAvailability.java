@@ -1,7 +1,7 @@
 package tn.naizo.smartvillagers.villager;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.level.Level;
 
 import java.util.Optional;

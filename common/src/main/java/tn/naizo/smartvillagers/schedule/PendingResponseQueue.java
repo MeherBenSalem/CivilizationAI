@@ -2,7 +2,7 @@ package tn.naizo.smartvillagers.schedule;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import tn.naizo.smartvillagers.display.ResponseDispatcher;
 import tn.naizo.smartvillagers.session.ConversationLockManager;
 import tn.naizo.smartvillagers.session.ConversationSessionManager;

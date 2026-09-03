@@ -9,6 +9,6 @@ public final class ThinkingIndicator {
     }
 
     public static void show(ServerPlayer player, VillagerPersona persona) {
-        player.displayClientMessage(Component.literal(persona.displayName() + " is thinking..."), true);
+        player.sendSystemMessage(Component.literal(persona.displayName() + " is thinking..."), true);
     }
 }

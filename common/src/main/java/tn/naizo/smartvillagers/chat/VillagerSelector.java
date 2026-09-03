@@ -1,7 +1,7 @@
 package tn.naizo.smartvillagers.chat;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
@@ -22,7 +22,7 @@ public final class VillagerSelector {
                                                          ConversationSessionManager sessions) {
         double radius = SmartVillagersConfig.get().hearingRadius();
         AABB box = player.getBoundingBox().inflate(radius);
-        List<Villager> villagers = player.serverLevel().getEntitiesOfClass(Villager.class, box, Villager::isAlive);
+        List<Villager> villagers = player.level().getEntitiesOfClass(Villager.class, box, Villager::isAlive);
 
         List<VillagerCandidate> candidates = new ArrayList<>();
         for (Villager villager : villagers) {

@@ -1,7 +1,8 @@
 package tn.naizo.smartvillagers.mixin;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,28 +30,22 @@ public class VillagerAiDataMixin implements VillagerAiDataHolder {
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void smartVillagers$save(CompoundTag tag, CallbackInfo ci) {
-        CompoundTag root = new CompoundTag();
-        root.put("Memory", smartVillagers$aiData.memory().toNbt());
+    private void smartVillagers$save(ValueOutput output, CallbackInfo ci) {
+        ValueOutput root = output.child(Constants.MOD_ID);
+        smartVillagers$aiData.memory().write(root.child("Memory"));
         if (!smartVillagers$aiData.personaOverride().isEmpty()) {
-            CompoundTag persona = new CompoundTag();
-            smartVillagers$aiData.personaOverride().writeNbt(persona);
-            root.put("PersonaOverride", persona);
+            smartVillagers$aiData.personaOverride().write(root.child("PersonaOverride"));
         }
-        tag.put(Constants.MOD_ID, root);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void smartVillagers$load(CompoundTag tag, CallbackInfo ci) {
-        if (!tag.contains(Constants.MOD_ID)) {
-            return;
-        }
-        CompoundTag root = tag.getCompound(Constants.MOD_ID);
-        smartVillagers$aiData.setMemory(VillagerMemory.fromNbt(root.getCompound("Memory")));
-        if (root.contains("PersonaOverride")) {
-            smartVillagers$aiData.setPersonaOverride(PersonaOverride.fromNbt(root.getCompound("PersonaOverride")));
-        } else {
-            smartVillagers$aiData.setPersonaOverride(PersonaOverride.EMPTY);
-        }
+    private void smartVillagers$load(ValueInput input, CallbackInfo ci) {
+        input.child(Constants.MOD_ID).ifPresent(root -> {
+            smartVillagers$aiData.setMemory(VillagerMemory.read(root.childOrEmpty("Memory")));
+            root.child("PersonaOverride").ifPresentOrElse(
+                    persona -> smartVillagers$aiData.setPersonaOverride(PersonaOverride.read(persona)),
+                    () -> smartVillagers$aiData.setPersonaOverride(PersonaOverride.EMPTY)
+            );
+        });
     }
 }

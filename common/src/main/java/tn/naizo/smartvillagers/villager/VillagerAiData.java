@@ -1,6 +1,6 @@
 package tn.naizo.smartvillagers.villager;
 
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 
 public final class VillagerAiData {
     private VillagerMemory memory = new VillagerMemory();

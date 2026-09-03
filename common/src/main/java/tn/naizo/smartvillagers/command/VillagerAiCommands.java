@@ -10,7 +10,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.phys.AABB;
 import tn.naizo.smartvillagers.chat.ConversationService;
 import tn.naizo.smartvillagers.config.ApiCredentials;
@@ -29,16 +29,16 @@ public final class VillagerAiCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, ConversationService conversations) {
         dispatcher.register(Commands.literal("villagerai")
                 .then(Commands.literal("reload")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> reload(ctx.getSource())))
                 .then(Commands.literal("status")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> status(ctx.getSource(), conversations)))
                 .then(Commands.literal("debug")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> debug(ctx.getSource(), conversations)))
                 .then(Commands.literal("memory")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("clear")
                                 .executes(ctx -> clearLookedMemory(ctx.getSource()))
                                 .then(Commands.argument("target", EntityArgument.entity())
@@ -77,7 +77,7 @@ public final class VillagerAiCommands {
         if (SmartVillagersConfig.get().allowPlayersEditPersona()) {
             return true;
         }
-        return source.hasPermission(2);
+        return Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(source);
     }
 
     private static int reload(CommandSourceStack source) {
@@ -213,7 +213,7 @@ public final class VillagerAiCommands {
             return Optional.empty();
         }
         AABB box = player.getBoundingBox().inflate(6.0);
-        return player.serverLevel().getEntitiesOfClass(Villager.class, box, Villager::isAlive).stream()
+        return player.level().getEntitiesOfClass(Villager.class, box, Villager::isAlive).stream()
                 .min(Comparator.comparingDouble(player::distanceTo));
     }
 

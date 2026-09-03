@@ -1,6 +1,7 @@
 package tn.naizo.smartvillagers.villager;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Optional;
 
@@ -21,23 +22,20 @@ public record PersonaOverride(
         return name.isEmpty() && trait.isEmpty() && speechStyle.isEmpty() && backstory.isEmpty();
     }
 
-    public static PersonaOverride fromNbt(CompoundTag tag) {
-        if (tag == null || tag.isEmpty()) {
-            return EMPTY;
-        }
+    public static PersonaOverride read(ValueInput input) {
         return new PersonaOverride(
-                readString(tag, "name"),
-                readString(tag, "trait"),
-                readString(tag, "speechStyle"),
-                readString(tag, "backstory")
+                input.getString("name").filter(s -> !s.isBlank()),
+                input.getString("trait").filter(s -> !s.isBlank()),
+                input.getString("speechStyle").filter(s -> !s.isBlank()),
+                input.getString("backstory").filter(s -> !s.isBlank())
         );
     }
 
-    public void writeNbt(CompoundTag tag) {
-        name.ifPresent(value -> tag.putString("name", value));
-        trait.ifPresent(value -> tag.putString("trait", value));
-        speechStyle.ifPresent(value -> tag.putString("speechStyle", value));
-        backstory.ifPresent(value -> tag.putString("backstory", value));
+    public void write(ValueOutput output) {
+        name.ifPresent(value -> output.putString("name", value));
+        trait.ifPresent(value -> output.putString("trait", value));
+        speechStyle.ifPresent(value -> output.putString("speechStyle", value));
+        backstory.ifPresent(value -> output.putString("backstory", value));
     }
 
     public PersonaOverride withName(String value) {
@@ -58,15 +56,5 @@ public record PersonaOverride(
 
     public PersonaOverride cleared() {
         return EMPTY;
-    }
-
-    private static Optional<String> readString(CompoundTag tag, String key) {
-        if (tag.contains(key)) {
-            String value = tag.getString(key);
-            if (!value.isBlank()) {
-                return Optional.of(value);
-            }
-        }
-        return Optional.empty();
     }
 }

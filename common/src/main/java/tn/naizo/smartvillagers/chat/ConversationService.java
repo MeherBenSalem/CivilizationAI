@@ -4,7 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import tn.naizo.smartvillagers.ActivationMode;
 import tn.naizo.smartvillagers.Constants;
 import tn.naizo.smartvillagers.ai.AiProvider;
@@ -136,7 +136,7 @@ public final class ConversationService {
 
         Optional<String> busy = VillagerAvailability.busyReply(villager);
         if (busy.isPresent()) {
-            dispatcher.dispatch(player.serverLevel(), player, villager, persona, busy.get());
+            dispatcher.dispatch(player.level(), player, villager, persona, busy.get());
             return;
         }
 
@@ -167,7 +167,7 @@ public final class ConversationService {
         VillagerContext context = VillagerContextBuilder.from(player, villager, data.memory(), persona);
         AiRequest request = new AiRequest(context, message);
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         provider.complete(request).whenComplete((AiResponse response, Throwable error) -> {
             rateLimiter.release();
             String reply;

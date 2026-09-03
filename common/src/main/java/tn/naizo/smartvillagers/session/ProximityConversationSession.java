@@ -1,6 +1,6 @@
 package tn.naizo.smartvillagers.session;
 
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 
 import java.util.UUID;
 

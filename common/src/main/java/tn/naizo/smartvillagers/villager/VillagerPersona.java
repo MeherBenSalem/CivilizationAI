@@ -1,9 +1,6 @@
 package tn.naizo.smartvillagers.villager;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.Villager;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,9 +64,9 @@ public record VillagerPersona(
     }
 
     public static String professionKey(Villager villager) {
-        VillagerProfession profession = villager.getVillagerData().getProfession();
-        ResourceLocation key = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
-        return key != null ? key.toString() : "minecraft:none";
+        return villager.getVillagerData().profession().unwrapKey()
+                .map(key -> key.identifier().toString())
+                .orElse("minecraft:none");
     }
 
     public static String professionFlavor(String professionKey) {
