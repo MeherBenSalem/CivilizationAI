@@ -11,12 +11,12 @@ Thanks for helping improve the mod.
 ## Development setup
 
 1. Fork and clone the repository.
-2. Use **Java 21** for the `main` (1.21.1) branch.
+2. Use **Java 21** for the `main` (1.21.1) branch, or **Java 17** for `1.20.1`.
 3. Import the Gradle project and run:
 
 ```bash
 ./gradlew build
-./gradlew :neoforge:runClient   # or :fabric:runClient / :forge:runClient
+./gradlew :fabric:runClient   # or :forge:runClient (on 1.20.1); :neoforge:runClient on main
 ```
 
 Optional AI testing:

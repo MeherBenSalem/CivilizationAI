@@ -17,7 +17,6 @@ jobs:
       matrix:
         include:
           - task: ":common:test"
-          - task: ":neoforge:build"
           - task: ":fabric:build"
           - task: ":forge:build"
     steps:
@@ -25,7 +24,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "17"
           cache: gradle
       - name: Build ${{ matrix.task }}
         run: ./gradlew ${{ matrix.task }} --stacktrace

@@ -8,13 +8,13 @@ Villagers you can talk to. Stand near a villager, speak in normal chat, and they
 - **Personalities** — deterministic per-villager personas, plus player-editable overrides
 - **DeepSeek AI** — OpenAI-compatible chat completions with local fallback dialogue
 - **Privacy opt-in** — player consent before messages are sent to an AI provider
-- **MultiLoader** — Fabric, Forge, and NeoForge on Minecraft 1.21.1
+- **MultiLoader** — Fabric and Forge on Minecraft 1.20.1
 
 ## Requirements
 
-- Minecraft 1.21.1
-- Java 21
-- One of: Fabric Loader + Fabric API, Forge, or NeoForge
+- Minecraft 1.20.1
+- Java 17
+- One of: Fabric Loader + Fabric API, or Forge
 - Optional: a DeepSeek API key for AI replies
 
 ## Installation
@@ -57,10 +57,9 @@ Never commit API keys. Prefer the environment variable.
 ./gradlew build
 ```
 
-Jars are produced under `fabric/build/libs/`, `forge/build/libs/`, and `neoforge/build/libs/`.
+Jars are produced under `fabric/build/libs/` and `forge/build/libs/`.
 
 ```bash
-./gradlew :neoforge:runClient
 ./gradlew :fabric:runClient
 ./gradlew :forge:runClient
 ```
@@ -70,7 +69,7 @@ Jars are produced under `fabric/build/libs/`, `forge/build/libs/`, and `neoforge
 | Branch | Minecraft | Loaders |
 |--------|-----------|---------|
 | `main` | 1.21.1 | Fabric, Forge, NeoForge |
-| `1.20.1` | 1.20.1 | Fabric, Forge |
+| `1.20.1` (this branch) | 1.20.1 | Fabric, Forge |
 | `26.2` | 26.2 | Fabric, NeoForge |
 
 ## Contributing
