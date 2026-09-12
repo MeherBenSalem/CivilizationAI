@@ -1,10 +1,47 @@
 # Store listing paste notes
 
-Do **not** publish from this file. Copy the blocks below into the CurseForge and Modrinth descriptions when you are ready.
+Do **not** publish from this file. Copy the blocks below into CurseForge and Modrinth when you are ready.
 
 Verified against `main` (`SmartVillagersConfig`, `ApiCredentials`, loader `getConfigDirectory()`). The live listings still describe a generated `[smartvillagers.api] apiKey` block and “right-click a villager”. Those do not match this code.
 
-Replace the **Configuration**, **Installation**, and API FAQ sections with the text below. Leave marketing feature copy as-is unless you want a later pass.
+**No new jar for this pass.** Update description text (and optional changelog) only.
+
+## Paste checklist
+
+1. Open the mod page on [Modrinth](https://modrinth.com/) and/or [CurseForge](https://www.curseforge.com/).
+2. Edit the **description** — replace the **Configuration**, **Installation**, and API FAQ sections with the [Description replacement](#description-replacement-markdown) block below. Leave marketing feature copy as-is unless you want a later pass.
+3. Remove any mention of:
+   - `[smartvillagers.api]` or `apiKey` inside the generated `config.toml`
+   - downloading a “DeepSeek API” jar
+   - right-clicking a villager to talk (use normal chat while standing nearby)
+4. Optionally paste a [changelog snippet](#changelog-description-only-no-new-jar) when saving (no file upload required).
+5. Reply to confused comments with the [CurseForge comment reply](#curseforge-comment-reply) block if needed.
+
+## Changelog (description-only, no new jar)
+
+Use when you save an edited description without uploading a new file.
+
+### Modrinth
+
+```markdown
+Documentation update (no new jar): corrected setup instructions.
+
+- DeepSeek API key: create at https://platform.deepseek.com/api_keys (not a downloadable file).
+- Gameplay settings: `config/smartvillagers/config.toml` (created on first launch).
+- API key location: `DEEPSEEK_API_KEY` environment variable or `config/smartvillagers/secrets.toml` (never auto-generated).
+- Talk to villagers with normal chat while standing nearby (not right-click).
+```
+
+### CurseForge
+
+```text
+Documentation update (no new jar): corrected setup instructions.
+
+- DeepSeek API key: create at https://platform.deepseek.com/api_keys (not a downloadable file).
+- Gameplay settings: config/smartvillagers/config.toml (created on first launch).
+- API key location: DEEPSEEK_API_KEY environment variable or config/smartvillagers/secrets.toml (never auto-generated).
+- Talk to villagers with normal chat while standing nearby (not right-click).
+```
 
 ## CurseForge comment reply
 
@@ -36,6 +73,8 @@ Talk by standing near a villager and using normal chat. Then /villagerai reload 
 ## Description replacement (Markdown)
 
 Works on Modrinth as-is. CurseForge accepts the same Markdown in the description editor.
+
+Copy everything from `### Configuration` through `### FAQ replacements` into the listing, replacing the old setup sections.
 
 ### Configuration
 
