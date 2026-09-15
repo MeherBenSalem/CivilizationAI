@@ -34,6 +34,7 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "voicechat"
 mandatory = false
-versionRange = "[2.5.0,)"
+# SVC publishes versions like "1.21.1-2.5.35", not "2.5.35" — do not use [2.5.0,).
+versionRange = "[0,)"
 ordering = "AFTER"
 side = "BOTH"

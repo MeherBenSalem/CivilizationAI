@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Fix Forge/NeoForge optional Simple Voice Chat dependency version range. SVC reports versions like `1.21.1-2.5.35`, so `[2.5.0,)` wrongly blocked loading when Voice Chat was installed.
+
 ## 1.1.0
 
 Optional spoken villager replies via Simple Voice Chat.
