@@ -42,6 +42,9 @@ public final class SmartVillagersConfig {
                 config.save();
             } else {
                 config.load();
+                if (ensureVoiceKeys(config)) {
+                    config.save();
+                }
             }
 
             snapshot = readSnapshot(config);
@@ -76,9 +79,39 @@ public final class SmartVillagersConfig {
         config.set("persona.allowPlayersEditPersona", defaults.allowPlayersEditPersona());
         config.set("ai.apiBaseUrl", defaults.apiBaseUrl());
         config.set("ai.model", defaults.model());
+        applyVoiceDefaults(config);
     }
 
-    private static Snapshot readSnapshot(Config config) {
+    private static void applyVoiceDefaults(Config config) {
+        Snapshot defaults = Snapshot.defaults();
+        config.set("voice.enabled", defaults.voiceEnabled());
+        config.set("voice.volume", defaults.voiceVolume());
+        config.set("voice.range", defaults.voiceRange());
+        config.set("voice.fallbackToText", defaults.voiceFallbackToText());
+        if (config instanceof com.electronwill.nightconfig.core.CommentedConfig commented) {
+            commented.setComment("voice", """
+                    Optional spoken replies. No extra TTS language setting: speech uses the same \
+                    reply text/language as the AI prompt (player chat + game locale). Requires Simple Voice Chat.""");
+            commented.setComment("voice.enabled", "Attempt spoken playback when Simple Voice Chat is installed. Harmless no-op without it.");
+            commented.setComment("voice.volume", "Linear gain for synthesized speech, 0.0-1.0. 0 mutes voice and keeps text.");
+            commented.setComment("voice.range", "Hearing distance in blocks. 0 uses proximity.responseRadius.");
+            commented.setComment("voice.fallbackToText", "If true, still show chat/action-bar text when voice plays. If voice cannot play, text is always shown.");
+        }
+    }
+
+    /**
+     * Writes the [voice] section into an existing config that predates it.
+     * @return true if the file should be saved
+     */
+    static boolean ensureVoiceKeys(Config config) {
+        if (config.contains("voice.enabled")) {
+            return false;
+        }
+        applyVoiceDefaults(config);
+        return true;
+    }
+
+    static Snapshot readSnapshot(Config config) {
         return new Snapshot(
                 config.getOrElse("proximity.enabled", true),
                 config.getOrElse("proximity.hearingRadius", 12.0),
@@ -97,8 +130,27 @@ public final class SmartVillagersConfig {
                 config.getOrElse("ai.thinkingDelayMaxTicks", 60),
                 config.getOrElse("persona.allowPlayersEditPersona", false),
                 config.getOrElse("ai.apiBaseUrl", "https://api.deepseek.com/chat/completions"),
-                config.getOrElse("ai.model", "deepseek-chat")
+                config.getOrElse("ai.model", "deepseek-chat"),
+                config.getOrElse("voice.enabled", true),
+                clampVolume(number(config, "voice.volume", 1.0)),
+                Math.max(0.0, number(config, "voice.range", 0.0)),
+                config.getOrElse("voice.fallbackToText", true)
         );
+    }
+
+    private static double number(Config config, String path, double fallback) {
+        Object value = config.get(path);
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        return fallback;
+    }
+
+    private static double clampVolume(double volume) {
+        if (Double.isNaN(volume) || Double.isInfinite(volume)) {
+            return 1.0;
+        }
+        return Math.max(0.0, Math.min(1.0, volume));
     }
 
     private static <E extends Enum<E>> E parseEnum(String value, E fallback) {
@@ -129,7 +181,11 @@ public final class SmartVillagersConfig {
             int thinkingDelayMaxTicks,
             boolean allowPlayersEditPersona,
             String apiBaseUrl,
-            String model
+            String model,
+            boolean voiceEnabled,
+            double voiceVolume,
+            double voiceRange,
+            boolean voiceFallbackToText
     ) {
         public static Snapshot defaults() {
             return new Snapshot(
@@ -150,7 +206,11 @@ public final class SmartVillagersConfig {
                     60,
                     false,
                     "https://api.deepseek.com/chat/completions",
-                    "deepseek-chat"
+                    "deepseek-chat",
+                    true,
+                    1.0,
+                    0.0,
+                    true
             );
         }
     }

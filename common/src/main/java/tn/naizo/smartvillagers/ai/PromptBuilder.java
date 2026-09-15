@@ -3,6 +3,7 @@ package tn.naizo.smartvillagers.ai;
 import tn.naizo.smartvillagers.villager.VillagerContext;
 import tn.naizo.smartvillagers.villager.VillagerMemory;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
+import tn.naizo.smartvillagers.voice.VoiceLanguage;
 
 public final class PromptBuilder {
     private PromptBuilder() {
@@ -23,6 +24,7 @@ public final class PromptBuilder {
         prompt.append(VillagerPersona.professionFlavor(context.professionKey())).append(' ');
         prompt.append("Stay in character, keep replies short (1-2 sentences), family-friendly, ");
         prompt.append("and do not mention being an AI or language model. ");
+        prompt.append(VoiceLanguage.systemPromptFragment(context.playerLanguage())).append(' ');
         prompt.append("Relationship rapport with this player: ").append(context.rapport()).append(". ");
 
         if (!context.recentHistory().isEmpty()) {

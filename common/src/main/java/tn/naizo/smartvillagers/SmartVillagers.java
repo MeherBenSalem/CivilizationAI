@@ -5,6 +5,7 @@ import tn.naizo.smartvillagers.chat.ProximityChatHandler;
 import tn.naizo.smartvillagers.command.VillagerAiCommands;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.platform.Services;
+import tn.naizo.smartvillagers.voice.VoiceOutput;
 
 public final class SmartVillagers {
     private static final Object LOCK = new Object();
@@ -23,6 +24,7 @@ public final class SmartVillagers {
 
             Constants.LOG.info("Initializing {} on {}", Constants.MOD_NAME, Services.PLATFORM.getPlatformName());
             SmartVillagersConfig.load();
+            VoiceOutput.bootstrap();
 
             conversations = new ConversationService();
             conversations.boot();

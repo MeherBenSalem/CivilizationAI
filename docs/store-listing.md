@@ -2,9 +2,7 @@
 
 Do **not** publish from this file. Copy the blocks below into CurseForge and Modrinth when you are ready.
 
-Verified against `main` (`SmartVillagersConfig`, `ApiCredentials`, loader `getConfigDirectory()`). The live listings still describe a generated `[smartvillagers.api] apiKey` block and “right-click a villager”. Those do not match this code.
-
-**No new jar for this pass.** Update description text (and optional changelog) only.
+Verified against this branch (`SmartVillagersConfig` `[voice]` keys, Simple Voice Chat soft-dep, `ApiCredentials`, loader `getConfigDirectory()`).
 
 ## Paste checklist
 
@@ -14,8 +12,34 @@ Verified against `main` (`SmartVillagersConfig`, `ApiCredentials`, loader `getCo
    - `[smartvillagers.api]` or `apiKey` inside the generated `config.toml`
    - downloading a “DeepSeek API” jar
    - right-clicking a villager to talk (use normal chat while standing nearby)
-4. Optionally paste a [changelog snippet](#changelog-description-only-no-new-jar) when saving (no file upload required).
-5. Reply to confused comments with the [CurseForge comment reply](#curseforge-comment-reply) block if needed.
+4. For **1.1.0** (voice output), paste the [1.1.0 changelog](#changelog-110-voice-output) when you upload the new jars. Do not publish from this repo.
+5. Reply to comments with the blocks below (API/config, or Riri / “do they speak out loud?”).
+
+## Changelog 1.1.0 (voice output)
+
+Use when uploading 1.1.0 jars.
+
+### Modrinth
+
+```markdown
+Optional spoken villager voice (text still default).
+
+- Villagers stay text chat unless [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) is installed on server and clients.
+- Config: `voice.enabled`, `voice.volume`, `voice.range` (0 = `proximity.responseRadius`), `voice.fallbackToText`.
+- Language follows the AI reply / your Minecraft language. No separate TTS locale setting.
+- Missing Simple Voice Chat = text-only, no crash.
+```
+
+### CurseForge
+
+```text
+Optional spoken villager voice (text still default).
+
+- Villagers stay text chat unless Simple Voice Chat is installed on server and clients.
+- Config: voice.enabled, voice.volume, voice.range (0 = proximity.responseRadius), voice.fallbackToText.
+- Language follows the AI reply / your Minecraft language. No separate TTS locale setting.
+- Missing Simple Voice Chat = text-only, no crash.
+```
 
 ## Changelog (description-only, no new jar)
 
@@ -41,6 +65,18 @@ Documentation update (no new jar): corrected setup instructions.
 - Gameplay settings: config/smartvillagers/config.toml (created on first launch).
 - API key location: DEEPSEEK_API_KEY environment variable or config/smartvillagers/secrets.toml (never auto-generated).
 - Talk to villagers with normal chat while standing nearby (not right-click).
+```
+
+## CurseForge comment reply (Riri — speak out loud / other languages)
+
+```text
+Hi Riri — they use text chat by default.
+
+Spoken voice is optional: install Simple Voice Chat (same loader as this mod) on the server and on clients, keep voice.enabled = true in config/smartvillagers/config.toml, and nearby players hear the villager through Voice Chat.
+
+Language: there is no separate TTS language menu. Villagers answer in the same language you type. The AI prompt also gets your Minecraft language (en_us, fr_fr, ja_jp, …) and the spoken line is that same reply.
+
+If Simple Voice Chat is not installed, nothing crashes — you just get text. voice.fallbackToText = true (default) still shows the chat line when they speak.
 ```
 
 ## CurseForge comment reply
@@ -119,5 +155,8 @@ No. Create a key at [platform.deepseek.com/api_keys](https://platform.deepseek.c
 
 **Do I need a DeepSeek API key?**
 Only for live AI. Fallback dialogue works without one.
+
+**Do villagers speak out loud?**
+Text by default. Install Simple Voice Chat (server + clients) and keep `voice.enabled = true`. Language follows the chat/AI reply; there is no separate TTS language setting. Without Simple Voice Chat, text only (no crash).
 
 Full paths and the real default `config.toml` keys: [README](../README.md).

@@ -17,6 +17,9 @@
     "entrypoints": {
         "main": [
             "tn.naizo.smartvillagers.fabric.SmartVillagersFabric"
+        ],
+        "voicechat": [
+            "tn.naizo.smartvillagers.voice.svc.SimpleVoiceChatPlugin"
         ]
     },
     "mixins": [
@@ -28,5 +31,8 @@
         "fabric-api": "*",
         "minecraft": "${minecraft_version}",
         "java": ">=${java_version}"
+    },
+    "suggests": {
+        "voicechat": "*"
     }
 }

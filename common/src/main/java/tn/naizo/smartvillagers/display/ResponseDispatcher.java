@@ -6,10 +6,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.Villager;
 import tn.naizo.smartvillagers.DisplayMode;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
+import tn.naizo.smartvillagers.villager.VillagerContextBuilder;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
+import tn.naizo.smartvillagers.voice.VoiceDelivery;
+import tn.naizo.smartvillagers.voice.VoiceOutput;
 
 public final class ResponseDispatcher {
     public void dispatch(ServerLevel level, ServerPlayer player, Villager villager, VillagerPersona persona, String text) {
+        VoiceDelivery voice = VoiceOutput.speak(villager, text, VillagerContextBuilder.playerLanguage(player));
+        if (!voice.showText()) {
+            return;
+        }
+
         Component message = format(persona, text);
         SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
 

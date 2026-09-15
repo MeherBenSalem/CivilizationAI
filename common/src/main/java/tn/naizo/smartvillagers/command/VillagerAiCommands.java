@@ -15,9 +15,12 @@ import net.minecraft.world.phys.AABB;
 import tn.naizo.smartvillagers.chat.ConversationService;
 import tn.naizo.smartvillagers.config.ApiCredentials;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
+import tn.naizo.smartvillagers.platform.Services;
 import tn.naizo.smartvillagers.villager.PersonaOverride;
 import tn.naizo.smartvillagers.villager.VillagerAiData;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
+import tn.naizo.smartvillagers.voice.VoiceAvailability;
+import tn.naizo.smartvillagers.voice.VoiceOutput;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -99,6 +102,18 @@ public final class VillagerAiCommands {
                 + (conversations.provider().isConfigured() ? " (ready)" : " (not configured)"));
         line(source, "API key source", ApiCredentials.source());
         line(source, "Opt-in required", String.valueOf(config.requirePlayerOptIn()));
+        boolean svc = VoiceAvailability.isModLoaded(id -> {
+            try {
+                return Services.PLATFORM.isModLoaded(id);
+            } catch (Throwable t) {
+                return false;
+            }
+        });
+        line(source, "Voice", config.voiceEnabled() ? "enabled" : "disabled");
+        line(source, "Simple Voice Chat", svc ? "present" : "missing (text only)");
+        line(source, "Voice backend", VoiceOutput.backendReady() ? "ready" : "not ready");
+        line(source, "Voice volume / range", config.voiceVolume() + " / "
+                + (config.voiceRange() > 0 ? config.voiceRange() : config.responseRadius() + " (responseRadius)"));
         return 1;
     }
 
