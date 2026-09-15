@@ -41,7 +41,8 @@ class DeepSeekSmokeTest {
                 persona,
                 List.of(),
                 1,
-                "minecraft:farmer"
+                "minecraft:farmer",
+                "en_us"
         );
 
         DeepSeekProvider provider = new DeepSeekProvider();

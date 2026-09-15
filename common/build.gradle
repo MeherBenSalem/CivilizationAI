@@ -22,6 +22,7 @@ dependencies {
 
     api 'com.electronwill.night-config:core:3.6.7'
     api 'com.electronwill.night-config:toml:3.6.7'
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
     // Gson is provided by Minecraft at runtime; compileOnly for tests/common compile.
     compileOnly 'com.google.code.gson:gson:2.10.1'
 

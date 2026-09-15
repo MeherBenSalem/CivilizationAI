@@ -16,7 +16,8 @@ public final class VillagerContextBuilder {
                 persona,
                 memory.recentFor(player.getUUID(), VillagerMemory.MAX_HISTORY),
                 memory.rapport(),
-                persona.professionKey()
+                persona.professionKey(),
+                playerLanguage(player)
         );
     }
 
@@ -38,5 +39,14 @@ public final class VillagerContextBuilder {
         facts.append("Player ").append(player.getGameProfile().getName()).append(" is nearby. ");
         facts.append("Villager at block ").append(villager.blockPosition().toShortString()).append('.');
         return facts.toString().trim();
+    }
+
+    public static String playerLanguage(ServerPlayer player) {
+        try {
+            String language = player.clientInformation().language();
+            return language == null ? "" : language;
+        } catch (RuntimeException ignored) {
+            return "";
+        }
     }
 }

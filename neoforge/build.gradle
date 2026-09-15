@@ -47,4 +47,5 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     implementation 'com.electronwill.night-config:core:3.6.7'
     implementation 'com.electronwill.night-config:toml:3.6.7'
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
 }

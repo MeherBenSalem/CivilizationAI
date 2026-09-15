@@ -7,6 +7,10 @@ public record VillagerContext(
         VillagerPersona persona,
         List<VillagerMemory.Exchange> recentHistory,
         int rapport,
-        String professionKey
+        String professionKey,
+        String playerLanguage
 ) {
+    public VillagerContext {
+        playerLanguage = playerLanguage == null ? "" : playerLanguage;
+    }
 }
