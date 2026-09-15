@@ -121,7 +121,7 @@ maxConcurrent = 3
 thinkingDelayMinTicks = 20
 thinkingDelayMaxTicks = 60
 apiBaseUrl = "https://api.deepseek.com/chat/completions"
-model = "deepseek-chat"
+model = "deepseek-flash"
 
 [persona]
 allowPlayersEditPersona = false

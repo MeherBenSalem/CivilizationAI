@@ -44,3 +44,8 @@ config/smartvillagers/
 # generated
 **/src/generated/
 replay_pid*.log
+
+# collected release jars
+all-jars/
+dist/
+
