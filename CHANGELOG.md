@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2
+
+- Fix config load crash when Night-Config stores whole numbers as `Integer` (e.g. `ai.playerCooldownMs = 3000`). That ClassCastException forced defaults and broke reload.
+- Log DeepSeek HTTP / request failures at WARN so bad `ai.model` values are visible in logs.
+- Log voice TTS / playback failures at WARN; `/villagerai debug` now shows real pending-queue and in-flight counts.
+
 ## 1.1.1
 
 - Fix Forge/NeoForge optional Simple Voice Chat dependency version range. SVC reports versions like `1.21.1-2.5.35`, so `[2.5.0,)` wrongly blocked loading when Voice Chat was installed.

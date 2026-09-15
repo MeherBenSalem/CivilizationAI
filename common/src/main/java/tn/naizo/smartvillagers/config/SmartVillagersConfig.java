@@ -113,35 +113,67 @@ public final class SmartVillagersConfig {
 
     static Snapshot readSnapshot(Config config) {
         return new Snapshot(
-                config.getOrElse("proximity.enabled", true),
-                config.getOrElse("proximity.hearingRadius", 12.0),
-                config.getOrElse("proximity.responseRadius", 16.0),
-                parseEnum(config.getOrElse("proximity.activationMode", "SMART"), ActivationMode.SMART),
-                config.getOrElse("proximity.chatPrefix", "!"),
-                config.getOrElse("proximity.requirePrefix", false),
-                parseEnum(config.getOrElse("display.mode", "CHAT"), DisplayMode.CHAT),
-                config.getOrElse("display.cancelGlobalChatWhenTalking", false),
-                config.getOrElse("privacy.requirePlayerOptIn", true),
-                config.getOrElse("ai.maxReplyChars", 180),
-                config.getOrElse("ai.playerCooldownMs", 3000L),
-                config.getOrElse("ai.globalRequestsPerMinute", 30),
-                config.getOrElse("ai.maxConcurrent", 3),
-                config.getOrElse("ai.thinkingDelayMinTicks", 20),
-                config.getOrElse("ai.thinkingDelayMaxTicks", 60),
-                config.getOrElse("persona.allowPlayersEditPersona", false),
-                config.getOrElse("ai.apiBaseUrl", "https://api.deepseek.com/chat/completions"),
-                config.getOrElse("ai.model", "deepseek-chat"),
-                config.getOrElse("voice.enabled", true),
+                bool(config, "proximity.enabled", true),
+                number(config, "proximity.hearingRadius", 12.0),
+                number(config, "proximity.responseRadius", 16.0),
+                parseEnum(string(config, "proximity.activationMode", "SMART"), ActivationMode.SMART),
+                string(config, "proximity.chatPrefix", "!"),
+                bool(config, "proximity.requirePrefix", false),
+                parseEnum(string(config, "display.mode", "CHAT"), DisplayMode.CHAT),
+                bool(config, "display.cancelGlobalChatWhenTalking", false),
+                bool(config, "privacy.requirePlayerOptIn", true),
+                intNumber(config, "ai.maxReplyChars", 180),
+                longNumber(config, "ai.playerCooldownMs", 3000L),
+                intNumber(config, "ai.globalRequestsPerMinute", 30),
+                intNumber(config, "ai.maxConcurrent", 3),
+                intNumber(config, "ai.thinkingDelayMinTicks", 20),
+                intNumber(config, "ai.thinkingDelayMaxTicks", 60),
+                bool(config, "persona.allowPlayersEditPersona", false),
+                string(config, "ai.apiBaseUrl", "https://api.deepseek.com/chat/completions"),
+                string(config, "ai.model", "deepseek-chat"),
+                bool(config, "voice.enabled", true),
                 clampVolume(number(config, "voice.volume", 1.0)),
                 Math.max(0.0, number(config, "voice.range", 0.0)),
-                config.getOrElse("voice.fallbackToText", true)
+                bool(config, "voice.fallbackToText", true)
         );
+    }
+
+    private static boolean bool(Config config, String path, boolean fallback) {
+        Object value = config.get(path);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        return fallback;
+    }
+
+    private static String string(Config config, String path, String fallback) {
+        Object value = config.get(path);
+        if (value instanceof String s) {
+            return s;
+        }
+        return fallback;
     }
 
     private static double number(Config config, String path, double fallback) {
         Object value = config.get(path);
         if (value instanceof Number number) {
             return number.doubleValue();
+        }
+        return fallback;
+    }
+
+    private static int intNumber(Config config, String path, int fallback) {
+        Object value = config.get(path);
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return fallback;
+    }
+
+    private static long longNumber(Config config, String path, long fallback) {
+        Object value = config.get(path);
+        if (value instanceof Number number) {
+            return number.longValue();
         }
         return fallback;
     }

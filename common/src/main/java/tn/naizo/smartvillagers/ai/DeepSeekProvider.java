@@ -71,14 +71,15 @@ public final class DeepSeekProvider implements AiProvider {
         return CLIENT.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
                 .thenApply(response -> parseResponse(response.statusCode(), response.body()))
                 .exceptionally(error -> {
-                    Constants.LOG.debug("DeepSeek request failed", error);
+                    Constants.LOG.warn("DeepSeek request failed: {}", error.toString());
                     return AiResponse.failure("AI request failed");
                 });
     }
 
     private static AiResponse parseResponse(int status, String body) {
         if (status < 200 || status >= 300) {
-            Constants.LOG.debug("DeepSeek returned HTTP {}", status);
+            String snippet = body == null ? "" : body.substring(0, Math.min(240, body.length()));
+            Constants.LOG.warn("DeepSeek returned HTTP {} — check ai.model / API key. Body: {}", status, snippet);
             return AiResponse.failure("AI provider error (" + status + ")");
         }
 

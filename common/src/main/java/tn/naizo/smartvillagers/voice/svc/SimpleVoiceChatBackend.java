@@ -50,7 +50,7 @@ final class SimpleVoiceChatBackend implements VoiceBackend {
             player.startPlaying();
             return true;
         } catch (Throwable t) {
-            Constants.LOG.debug("Simple Voice Chat rejected villager audio", t);
+            Constants.LOG.warn("Simple Voice Chat rejected villager audio", t);
             return false;
         }
     }

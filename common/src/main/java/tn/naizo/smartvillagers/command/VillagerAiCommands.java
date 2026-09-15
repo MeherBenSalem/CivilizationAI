@@ -122,8 +122,8 @@ public final class VillagerAiCommands {
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
         line(source, "Sessions", String.valueOf(conversations.sessions().session(source.getEntity() != null
                 ? source.getEntity().getUUID() : java.util.UUID.randomUUID()).isPresent()));
-        line(source, "Pending replies", "queued");
-        line(source, "Rate limiter concurrent", "see logs");
+        line(source, "Pending replies", String.valueOf(conversations.pendingResponses().size()));
+        line(source, "Rate limiter concurrent", String.valueOf(conversations.rateLimiter().inFlight()));
         return 1;
     }
 

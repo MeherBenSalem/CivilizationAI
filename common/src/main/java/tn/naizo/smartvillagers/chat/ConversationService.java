@@ -172,7 +172,7 @@ public final class ConversationService {
             rateLimiter.release();
             String reply;
             if (error != null || response == null || !response.ok()) {
-                Constants.LOG.debug("AI failed, using fallback: {}",
+                Constants.LOG.warn("AI failed, using fallback: {}",
                         error != null ? error.toString() : (response != null ? response.error() : "null"));
                 reply = FallbackDialogue.reply(persona, signals);
             } else {

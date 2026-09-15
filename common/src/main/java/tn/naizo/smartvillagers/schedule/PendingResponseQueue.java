@@ -50,6 +50,12 @@ public final class PendingResponseQueue {
         }
     }
 
+    public int size() {
+        synchronized (pending) {
+            return pending.size();
+        }
+    }
+
     public static final class PendingResponse {
         private final UUID playerId;
         private final UUID villagerId;

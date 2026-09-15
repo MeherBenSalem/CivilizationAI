@@ -38,7 +38,7 @@ public final class VoiceOutput {
 
     public static VoiceDelivery speak(Villager villager, String text, String playerLanguage) {
         try {
-            return COORDINATOR.speak(
+            VoiceDelivery delivery = COORDINATOR.speak(
                     villager.getUUID(),
                     villager,
                     text,
@@ -46,8 +46,13 @@ public final class VoiceOutput {
                     VillagerVoicePitch.hz(villager.getUUID()),
                     SmartVillagersConfig.get().responseRadius()
             );
+            if (SmartVillagersConfig.get().voiceEnabled() && voiceChatPresent() && backendReady()
+                    && !delivery.spoken()) {
+                Constants.LOG.warn("Villager voice did not play (falling back to text). Check SVC volume category 'Smart Villagers'.");
+            }
+            return delivery;
         } catch (Throwable t) {
-            Constants.LOG.debug("Villager voice playback failed; using text", t);
+            Constants.LOG.warn("Villager voice playback failed; using text", t);
             return VoiceDelivery.textOnly();
         }
     }

@@ -48,6 +48,10 @@ public final class RateLimiter {
         concurrent.updateAndGet(value -> Math.max(0, value - 1));
     }
 
+    public int inFlight() {
+        return concurrent.get();
+    }
+
     public void reset() {
         lastRequestMs.clear();
         concurrent.set(0);
