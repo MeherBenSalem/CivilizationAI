@@ -122,18 +122,31 @@ async function uploadModrinthFile(file, changelog, token, dryRun, version) {
     return;
   }
 
-  const form = new FormData();
-  form.append("data", JSON.stringify(body));
-  form.append("file_0", new Blob([fs.readFileSync(file.jar)]), file.name);
+  let lastErr = null;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const form = new FormData();
+    form.append("data", JSON.stringify(body));
+    form.append("file_0", new Blob([fs.readFileSync(file.jar)]), file.name);
 
-  const res = await fetch("https://api.modrinth.com/v2/version", {
-    method: "POST",
-    headers: { Authorization: token },
-    body: form,
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Modrinth ${res.status} ${versionNumber} ${text.slice(0, 800)}`);
-  console.log("Modrinth OK", versionNumber, file.name);
+    const res = await fetch("https://api.modrinth.com/v2/version", {
+      method: "POST",
+      headers: { Authorization: token },
+      body: form,
+    });
+    const text = await res.text();
+    if (res.ok) {
+      console.log("Modrinth OK", versionNumber, file.name);
+      return;
+    }
+    lastErr = new Error(`Modrinth ${res.status} ${versionNumber} ${text.slice(0, 800)}`);
+    if ((res.status === 500 || res.status === 502 || res.status === 503 || res.status === 429) && attempt < 5) {
+      console.warn("Modrinth", res.status, versionNumber, "- retry", attempt);
+      await new Promise((r) => setTimeout(r, 10000 * attempt));
+      continue;
+    }
+    throw lastErr;
+  }
+  throw lastErr;
 }
 
 async function main() {
