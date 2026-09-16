@@ -2,7 +2,6 @@ package tn.naizo.smartvillagers.chat;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.Villager;
 import tn.naizo.smartvillagers.ActivationMode;
@@ -88,9 +87,7 @@ public final class ConversationService {
 
     public void tick(MinecraftServer server) {
         sessions.pruneInactive(120_000L);
-        for (ServerLevel level : server.getAllLevels()) {
-            pendingResponses.tick(level, dispatcher, sessions, locks);
-        }
+        pendingResponses.tick(server, dispatcher, sessions, locks);
     }
 
     public boolean handleChat(ServerPlayer player, String rawMessage) {
@@ -185,16 +182,28 @@ public final class ConversationService {
         ThinkingIndicator.show(player, persona);
 
         if (!provider.isConfigured() || !rateLimiter.tryAcquire(player.getUUID())) {
-            scheduleReply(player, villager, message, FallbackDialogue.reply(persona, signals), 10);
+            deliverNow(player, villager, message, FallbackDialogue.reply(persona, signals),
+                    !provider.isConfigured() ? "API key not configured; fallback used." : "Rate limited; fallback used.");
             return true;
         }
 
-        completeAndSchedule(player, villager, persona, message, signals);
+        player.sendSystemMessage(Component.literal("Waiting for DeepSeek (up to 30s)…"));
+        completeAndDeliverNow(player, villager, persona, message, signals);
         return true;
     }
 
     private void completeAndSchedule(ServerPlayer player, Villager villager, VillagerPersona persona,
                                      String message, MessageSignals signals) {
+        complete(player, villager, persona, message, signals, true);
+    }
+
+    private void completeAndDeliverNow(ServerPlayer player, Villager villager, VillagerPersona persona,
+                                       String message, MessageSignals signals) {
+        complete(player, villager, persona, message, signals, false);
+    }
+
+    private void complete(ServerPlayer player, Villager villager, VillagerPersona persona,
+                          String message, MessageSignals signals, boolean delayed) {
         VillagerAiData data = VillagerAiData.get(villager);
         VillagerContext context = VillagerContextBuilder.from(player, villager, data.memory(), persona);
         AiRequest request = new AiRequest(context, message);
@@ -207,12 +216,35 @@ public final class ConversationService {
             }
             String reply = ReplySelection.resolve(error != null ? AiResponse.failure(error.toString()) : response,
                     persona, signals);
+            boolean usedFallback = error != null || response == null || !response.ok();
             if (server != null) {
-                server.execute(() -> scheduleReply(player, villager, message, reply, thinkingDelay()));
+                server.execute(() -> {
+                    if (delayed) {
+                        scheduleReply(player, villager, message, reply, thinkingDelay());
+                    } else {
+                        String note = usedFallback
+                                ? "DeepSeek failed (" + (error != null ? error.toString()
+                                : (response != null ? response.error() : "null")) + "); fallback used."
+                                : "DeepSeek replied.";
+                        deliverNow(player, villager, message, reply, note);
+                    }
+                });
             } else {
                 locks.unlock(villager.getUUID(), player.getUUID());
             }
         });
+    }
+
+    private void deliverNow(ServerPlayer player, Villager villager, String playerMessage, String reply, String note) {
+        VillagerPersona persona = VillagerIdentity.applyVisibleIdentity(villager);
+        var voice = dispatcher.dispatch(player.serverLevel(), player, villager, persona, reply);
+        VillagerAiData.get(villager).memory().remember(player.getUUID(), playerMessage, reply);
+        sessions.touch(player.getUUID());
+        locks.unlock(villager.getUUID(), player.getUUID());
+        if (note != null && !note.isBlank()) {
+            player.sendSystemMessage(Component.literal(note));
+        }
+        player.sendSystemMessage(Component.literal("Voice spoken: " + (voice.spoken() ? "yes" : "no")));
     }
 
     private void scheduleReply(ServerPlayer player, Villager villager, String playerMessage, String reply, int delayTicks) {

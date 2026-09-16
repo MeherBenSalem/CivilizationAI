@@ -170,7 +170,8 @@ public final class VillagerAiCommands {
         line(source, "Voice", config.voiceEnabled() ? "enabled" : "disabled");
         line(source, "Simple Voice Chat", svc ? "present" : "missing (text only)");
         line(source, "Voice backend", VoiceOutput.backendReady() ? "ready" : "not ready");
-        source.sendSuccess(() -> Component.literal("Sending test line to " + persona.displayName() + "…")
+        source.sendSuccess(() -> Component.literal("Sending test line to " + persona.displayName()
+                        + " — wait up to 30s for DeepSeek, then a chat line and Voice spoken: yes/no.")
                 .withStyle(ChatFormatting.YELLOW), false);
 
         boolean started = conversations.testTalk(player, villager);

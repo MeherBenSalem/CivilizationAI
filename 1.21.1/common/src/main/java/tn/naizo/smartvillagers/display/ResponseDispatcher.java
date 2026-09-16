@@ -12,10 +12,10 @@ import tn.naizo.smartvillagers.voice.VoiceDelivery;
 import tn.naizo.smartvillagers.voice.VoiceOutput;
 
 public final class ResponseDispatcher {
-    public void dispatch(ServerLevel level, ServerPlayer player, Villager villager, VillagerPersona persona, String text) {
+    public VoiceDelivery dispatch(ServerLevel level, ServerPlayer player, Villager villager, VillagerPersona persona, String text) {
         VoiceDelivery voice = VoiceOutput.speak(villager, text, VillagerContextBuilder.playerLanguage(player));
         if (!voice.showText()) {
-            return;
+            return voice;
         }
 
         Component message = format(persona, text);
@@ -23,16 +23,19 @@ public final class ResponseDispatcher {
 
         if (config.displayMode() == DisplayMode.ACTION_BAR) {
             player.displayClientMessage(message, true);
-            return;
+            return voice;
         }
 
-        ProximityBroadcaster.broadcastNear(
+        player.sendSystemMessage(message);
+        ProximityBroadcaster.broadcastNearExcept(
                 level,
                 villager.getX(),
                 villager.getY(),
                 villager.getZ(),
-                message
+                message,
+                player.getUUID()
         );
+        return voice;
     }
 
     public static Component format(VillagerPersona persona, String text) {

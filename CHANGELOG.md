@@ -8,6 +8,7 @@
 - Nearby chat (within 6 blocks) activates without a perfect crosshair.
 - Add `/villagerai test` to probe AI, identity, mixin, and Simple Voice Chat in-game.
 - Fallback lines always include the villager’s name and profession.
+- Fix silent dropped replies: pending responses were decremented once per dimension, then delivered in the Nether/End where the villager does not exist.
 
 ## 1.1.2
 

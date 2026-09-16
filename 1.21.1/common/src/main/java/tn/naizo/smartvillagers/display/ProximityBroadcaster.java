@@ -21,9 +21,17 @@ public final class ProximityBroadcaster {
     }
 
     public static void broadcastNear(ServerLevel level, double x, double y, double z, Component message) {
+        broadcastNearExcept(level, x, y, z, message, null);
+    }
+
+    public static void broadcastNearExcept(ServerLevel level, double x, double y, double z, Component message,
+                                           java.util.UUID exceptPlayerId) {
         double radius = SmartVillagersConfig.get().responseRadius();
         AABB box = new AABB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
         for (ServerPlayer target : level.getEntitiesOfClass(ServerPlayer.class, box)) {
+            if (exceptPlayerId != null && exceptPlayerId.equals(target.getUUID())) {
+                continue;
+            }
             if (target.distanceToSqr(x, y, z) <= radius * radius) {
                 target.sendSystemMessage(message);
             }
