@@ -47,7 +47,11 @@ public final class VillagerSelector {
     public static boolean isLookingAt(ServerPlayer player, Villager villager) {
         Vec3 look = player.getLookAngle().normalize();
         Vec3 toVillager = villager.getEyePosition().subtract(player.getEyePosition()).normalize();
-        return look.dot(toVillager) > 0.92D;
+        return look.dot(toVillager) > 0.80D;
+    }
+
+    public static boolean isAddressing(ServerPlayer player, Villager villager, double distance) {
+        return isLookingAt(player, villager) || ActivationDetector.isCloseEnough(distance);
     }
 
     private static double score(ServerPlayer player, Villager villager, VillagerPersona persona, String message,

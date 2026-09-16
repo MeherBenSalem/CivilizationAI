@@ -18,6 +18,8 @@ import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.platform.Services;
 import tn.naizo.smartvillagers.villager.PersonaOverride;
 import tn.naizo.smartvillagers.villager.VillagerAiData;
+import tn.naizo.smartvillagers.villager.VillagerAiDataHolder;
+import tn.naizo.smartvillagers.villager.VillagerIdentity;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
 import tn.naizo.smartvillagers.voice.VoiceAvailability;
 import tn.naizo.smartvillagers.voice.VoiceOutput;
@@ -40,6 +42,12 @@ public final class VillagerAiCommands {
                 .then(Commands.literal("debug")
                         .requires(source -> source.hasPermission(2))
                         .executes(ctx -> debug(ctx.getSource(), conversations)))
+                .then(Commands.literal("test")
+                        .requires(source -> source.hasPermission(2))
+                        .executes(ctx -> testNearest(ctx.getSource(), conversations))
+                        .then(Commands.argument("target", EntityArgument.entity())
+                                .executes(ctx -> testTarget(ctx.getSource(), conversations,
+                                        EntityArgument.getEntity(ctx, "target")))))
                 .then(Commands.literal("memory")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("clear")
@@ -115,6 +123,58 @@ public final class VillagerAiCommands {
         line(source, "Voice volume / range", config.voiceVolume() + " / "
                 + (config.voiceRange() > 0 ? config.voiceRange() : config.responseRadius() + " (responseRadius)"));
         return 1;
+    }
+
+    private static int testNearest(CommandSourceStack source, ConversationService conversations) {
+        return resolveVillager(source, null, 16.0).map(villager ->
+                runTest(source, conversations, villager)).orElseGet(() -> {
+            source.sendFailure(Component.literal("Stand next to a villager (within 16 blocks) or provide a target."));
+            return 0;
+        });
+    }
+
+    private static int testTarget(CommandSourceStack source, ConversationService conversations, Entity target) {
+        if (!(target instanceof Villager villager)) {
+            source.sendFailure(Component.literal("Target is not a villager."));
+            return 0;
+        }
+        return runTest(source, conversations, villager);
+    }
+
+    private static int runTest(CommandSourceStack source, ConversationService conversations, Villager villager) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+
+        VillagerPersona persona = VillagerIdentity.applyVisibleIdentity(villager);
+        SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
+        source.sendSuccess(() -> Component.literal("Smart Villagers AI test")
+                .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
+        line(source, "Identity", persona.displayName() + " / " + persona.trait() + " / " + persona.professionLabel());
+        line(source, "Mixin", villager instanceof VillagerAiDataHolder ? "ok" : "FAILED (villager has no AI data)");
+        line(source, "Provider", conversations.provider().name()
+                + (conversations.provider().isConfigured() ? " (ready)" : " (not configured)"));
+        line(source, "API key source", ApiCredentials.source());
+        line(source, "Model", config.model());
+        line(source, "API URL", config.apiBaseUrl());
+        line(source, "Consent", conversations.privacy().hasConsent(player) ? "yes" : "no (test still calls AI)");
+        boolean svc = VoiceAvailability.isModLoaded(id -> {
+            try {
+                return Services.PLATFORM.isModLoaded(id);
+            } catch (Throwable t) {
+                return false;
+            }
+        });
+        line(source, "Voice", config.voiceEnabled() ? "enabled" : "disabled");
+        line(source, "Simple Voice Chat", svc ? "present" : "missing (text only)");
+        line(source, "Voice backend", VoiceOutput.backendReady() ? "ready" : "not ready");
+        source.sendSuccess(() -> Component.literal("Sending test line to " + persona.displayName() + "…")
+                .withStyle(ChatFormatting.YELLOW), false);
+
+        boolean started = conversations.testTalk(player, villager);
+        return started ? 1 : 0;
     }
 
     private static int debug(CommandSourceStack source, ConversationService conversations) {
@@ -220,6 +280,10 @@ public final class VillagerAiCommands {
     }
 
     private static Optional<Villager> resolveVillager(CommandSourceStack source, Entity explicit) {
+        return resolveVillager(source, explicit, 6.0);
+    }
+
+    private static Optional<Villager> resolveVillager(CommandSourceStack source, Entity explicit, double range) {
         if (explicit instanceof Villager villager) {
             return Optional.of(villager);
         }
@@ -227,7 +291,7 @@ public final class VillagerAiCommands {
         if (player == null) {
             return Optional.empty();
         }
-        AABB box = player.getBoundingBox().inflate(6.0);
+        AABB box = player.getBoundingBox().inflate(range);
         return player.serverLevel().getEntitiesOfClass(Villager.class, box, Villager::isAlive).stream()
                 .min(Comparator.comparingDouble(player::distanceTo));
     }

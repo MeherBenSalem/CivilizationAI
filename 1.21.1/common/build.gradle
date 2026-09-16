@@ -31,6 +31,7 @@ dependencies {
     testImplementation 'com.google.code.gson:gson:2.10.1'
     testImplementation 'com.electronwill.night-config:core:3.6.7'
     testImplementation 'com.electronwill.night-config:toml:3.6.7'
+    testImplementation 'org.slf4j:slf4j-nop:2.0.16'
 }
 
 tasks.named('test', Test).configure {

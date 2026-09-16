@@ -34,10 +34,17 @@ The DeepSeek API is **not** a file you download and drop into `mods/`. Create a 
 
 1. Open the official key page: [https://platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) (linked from [DeepSeek API Docs](https://api-docs.deepseek.com/)).
 2. Sign in, create a key, and copy it. Do not share it or commit it.
-3. Add the key using **one** of these (environment variable wins if both are set):
+3. Add the key using **one** of these (first match wins):
 
 ```bash
 export DEEPSEEK_API_KEY=your_key_here
+```
+
+Or put it in the generated **`config/smartvillagers/config.toml`**:
+
+```toml
+[ai]
+apiKey = "your_key_here"
 ```
 
 Or create **`config/smartvillagers/secrets.toml`** yourself (this file is **not** generated):
@@ -46,7 +53,7 @@ Or create **`config/smartvillagers/secrets.toml`** yourself (this file is **not*
 apiKey = "your_key_here"
 ```
 
-On a dedicated server, set the environment variable on the process, or create `secrets.toml` under the **server’s** `config/smartvillagers/` folder.
+Priority: `DEEPSEEK_API_KEY` environment variable, then `secrets.toml`, then `config.toml` `ai.apiKey`. On a dedicated server, set the env var on the process, or edit the **server’s** `config/smartvillagers/` files.
 
 Without a key, villagers still talk using local fallback dialogue.
 
@@ -91,8 +98,8 @@ Examples:
 
 - The `config/smartvillagers/` directory is created if missing.
 - If `config.toml` does **not** exist, defaults are written and saved.
-- If `config.toml` already exists, it is loaded and **not** overwritten, except a missing `[voice]` section is added once (1.1.0+).
-- The generated file does **not** contain an API key. Keys stay in `DEEPSEEK_API_KEY` or `secrets.toml`.
+- If `config.toml` already exists, it is loaded and **not** overwritten, except a missing `[voice]` section is added once (1.1.0+) and a missing `ai.apiKey` is added as `""` (1.1.4+).
+- Put a DeepSeek key in `ai.apiKey`, or override it with `DEEPSEEK_API_KEY` / `secrets.toml`.
 - `secrets.toml` is never created automatically.
 
 Generated defaults look like this (key order may vary):
@@ -122,6 +129,7 @@ thinkingDelayMinTicks = 20
 thinkingDelayMaxTicks = 60
 apiBaseUrl = "https://api.deepseek.com/chat/completions"
 model = "deepseek-flash"
+apiKey = ""
 
 [persona]
 allowPlayersEditPersona = false
@@ -135,7 +143,7 @@ fallbackToText = true
 
 `voice.range = 0` means “use `proximity.responseRadius`”. Existing 1.0.x configs get this section written on the next load if it is missing.
 
-After editing, run `/villagerai reload` or restart. `/villagerai status` shows whether a key is configured and which source was used (`environment`, `secrets.toml`, or `none`), plus whether Simple Voice Chat is present.
+After editing, run `/villagerai reload` or restart. `/villagerai status` shows whether a key is configured and which source was used (`environment`, `secrets.toml`, `config.toml`, or `none`), plus whether Simple Voice Chat is present. `/villagerai test` (op) forces a nearby villager to reply and prints identity, API, and voice diagnostics.
 
 ## Usage
 
@@ -151,6 +159,7 @@ After editing, run `/villagerai reload` or restart. `/villagerai status` shows w
 | `/villagerai persona clear` | Reset to defaults |
 | `/villagerai reload` | Reload config (op) |
 | `/villagerai status` | Status (op) |
+| `/villagerai test [villager]` | Force a reply and print AI / identity / voice diagnostics (op) |
 
 ## Building
 

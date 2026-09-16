@@ -50,6 +50,10 @@ public final class ActivationDetector {
         return signals.greeting() || signals.question() || signals.farewell();
     }
 
+    public static boolean isCloseEnough(double distance) {
+        return distance <= 6.0;
+    }
+
     public static String stripPrefix(String message) {
         SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
         String prefix = config.chatPrefix();

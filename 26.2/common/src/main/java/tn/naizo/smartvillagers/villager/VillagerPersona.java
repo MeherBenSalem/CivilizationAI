@@ -63,6 +63,10 @@ public record VillagerPersona(
         return of(villager.getUUID(), customName, data.personaOverride(), professionKey);
     }
 
+    public static String visibleName(VillagerPersona persona) {
+        return persona == null ? "Villager" : persona.displayName();
+    }
+
     public static String professionKey(Villager villager) {
         return villager.getVillagerData().profession().unwrapKey()
                 .map(key -> key.identifier().toString())

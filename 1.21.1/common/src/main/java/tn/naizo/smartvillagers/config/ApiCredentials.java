@@ -33,42 +33,60 @@ public final class ApiCredentials {
         ensureLoaded();
     }
 
+    static Resolved resolve(String env, String secretsKey, String configKey) {
+        if (notBlank(env)) {
+            return new Resolved(env.trim(), "environment");
+        }
+        if (notBlank(secretsKey)) {
+            return new Resolved(secretsKey.trim(), "secrets.toml");
+        }
+        if (notBlank(configKey)) {
+            return new Resolved(configKey.trim(), "config.toml");
+        }
+        return new Resolved(null, "none");
+    }
+
+    record Resolved(String key, String source) {
+        boolean isPresent() {
+            return key != null && !key.isBlank();
+        }
+    }
+
     private static void ensureLoaded() {
         if (loaded) {
             return;
         }
 
         String env = System.getenv(ENV_KEY);
-        if (env != null && !env.isBlank()) {
-            cachedKey = env.trim();
-            cachedSource = "environment";
-            loaded = true;
-            return;
-        }
-
-        Path secretsPath = Services.PLATFORM.getConfigDirectory()
-                .resolve(Constants.MOD_ID)
-                .resolve("secrets.toml");
-
-        if (secretsPath.toFile().exists()) {
-            try {
-                CommentedFileConfig secrets = CommentedFileConfig.builder(secretsPath).build();
-                secrets.load();
-                String fileKey = secrets.get("apiKey");
-                secrets.close();
-                if (fileKey != null && !fileKey.isBlank()) {
-                    cachedKey = fileKey.trim();
-                    cachedSource = "secrets.toml";
-                    loaded = true;
-                    return;
-                }
-            } catch (Exception e) {
-                Constants.LOG.warn("Failed to read secrets.toml (api key not loaded)");
-            }
-        }
-
-        cachedKey = null;
-        cachedSource = "none";
+        String secretsKey = readTomlValue(configDir().resolve("secrets.toml"), "apiKey");
+        String configKey = readTomlValue(configDir().resolve("config.toml"), "ai.apiKey");
+        Resolved resolved = resolve(env, secretsKey, configKey);
+        cachedKey = resolved.key();
+        cachedSource = resolved.source();
         loaded = true;
+    }
+
+    private static Path configDir() {
+        return Services.PLATFORM.getConfigDirectory().resolve(Constants.MOD_ID);
+    }
+
+    private static String readTomlValue(Path path, String key) {
+        if (path == null || !path.toFile().exists()) {
+            return null;
+        }
+        try {
+            CommentedFileConfig file = CommentedFileConfig.builder(path).build();
+            file.load();
+            Object value = file.get(key);
+            file.close();
+            return value instanceof String s ? s : null;
+        } catch (Exception e) {
+            Constants.LOG.warn("Failed to read {} ({})", path.getFileName(), key);
+            return null;
+        }
+    }
+
+    private static boolean notBlank(String value) {
+        return value != null && !value.isBlank();
     }
 }

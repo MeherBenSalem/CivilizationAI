@@ -120,18 +120,16 @@ Smart Villagers AI creates **gameplay settings** on first launch:
 
 That path is under your **Minecraft instance** or **dedicated server** root (the same `config` folder other mods use). The file is written only if it does not already exist.
 
-The generated file does **not** include an API key. Do not look for `[smartvillagers.api]` or `apiKey` there.
-
 Live AI replies need a DeepSeek **API key** (not a downloadable file):
 
 1. Create a key at [https://platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) — official page linked from [DeepSeek API Docs](https://api-docs.deepseek.com/).
-2. Set `DEEPSEEK_API_KEY` on the game/server process, **or** create `config/smartvillagers/secrets.toml` yourself:
+2. Paste it into `config/smartvillagers/config.toml` as `ai.apiKey`, **or** set `DEEPSEEK_API_KEY` on the game/server process, **or** create `config/smartvillagers/secrets.toml`:
 
 ```toml
 apiKey = "YOUR_DEEPSEEK_API_KEY"
 ```
 
-`secrets.toml` is never generated automatically. Prefer the environment variable on servers. Never share your key.
+Priority: environment variable, then `secrets.toml`, then `config.toml`. `secrets.toml` is never generated automatically. Never share your key.
 
 Without a key, villagers still use local fallback dialogue.
 
@@ -141,7 +139,7 @@ Without a key, villagers still use local fallback dialogue.
 2. **Fabric only:** also install [Fabric API](https://modrinth.com/mod/fabric-api) into `mods/`.
 3. Place Smart Villagers AI in `mods/`.
 4. Launch the game or server once. Confirm `config/smartvillagers/config.toml` appeared.
-5. Optionally add a DeepSeek key (`DEEPSEEK_API_KEY` or `config/smartvillagers/secrets.toml`).
+5. Optionally add a DeepSeek key (`ai.apiKey` in `config.toml`, or `DEEPSEEK_API_KEY`, or `secrets.toml`).
 6. Restart or run `/villagerai reload`.
 7. Stand near a villager and chat normally (not right-click).
 

@@ -40,28 +40,26 @@ public final class FallbackDialogue {
     }
 
     public static String reply(VillagerPersona persona, MessageSignals signals) {
+        String line;
         if (signals.greeting()) {
-            return pick(GREETING);
+            line = pick(GREETING);
+        } else if (signals.farewell()) {
+            line = pick(FAREWELL);
+        } else if (signals.question()) {
+            line = pick(QUESTION);
+        } else {
+            String trait = persona.trait().toLowerCase();
+            if (trait.contains("curious")) {
+                line = "Curious, aren't we? " + pick(GENERIC);
+            } else if (trait.contains("grumpy")) {
+                line = "Hmph. " + pick(GENERIC);
+            } else if (trait.contains("cheerful")) {
+                line = "Ha! " + pick(GENERIC);
+            } else {
+                line = pick(GENERIC);
+            }
         }
-        if (signals.farewell()) {
-            return pick(FAREWELL);
-        }
-        if (signals.question()) {
-            return pick(QUESTION);
-        }
-
-        String trait = persona.trait().toLowerCase();
-        if (trait.contains("curious")) {
-            return "Curious, aren't we? " + pick(GENERIC);
-        }
-        if (trait.contains("grumpy")) {
-            return "Hmph. " + pick(GENERIC);
-        }
-        if (trait.contains("cheerful")) {
-            return "Ha! " + pick(GENERIC);
-        }
-
-        return persona.displayName() + " says: " + pick(GENERIC);
+        return persona.displayName() + " the " + persona.professionLabel() + ": " + line;
     }
 
     private static String pick(List<String> options) {

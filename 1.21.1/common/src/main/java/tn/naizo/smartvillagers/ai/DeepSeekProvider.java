@@ -50,35 +50,14 @@ public final class DeepSeekProvider implements AiProvider {
         SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
         String systemPrompt = PromptBuilder.buildSystemPrompt(request.context());
         String userPrompt = PromptBuilder.buildUserPrompt(request.playerMessage());
-
-        JsonObject body = new JsonObject();
-        body.addProperty("model", config.model());
-        // Short villager replies; thinking mode burns this budget on CoT and can leave content empty.
-        body.addProperty("max_tokens", Math.min(256, Math.max(64, config.maxReplyChars())));
-
-        JsonObject thinking = new JsonObject();
-        thinking.addProperty("type", "disabled");
-        body.add("thinking", thinking);
-
-        JsonArray messages = new JsonArray();
-        JsonObject system = new JsonObject();
-        system.addProperty("role", "system");
-        system.addProperty("content", systemPrompt);
-        messages.add(system);
-
-        JsonObject user = new JsonObject();
-        user.addProperty("role", "user");
-        user.addProperty("content", userPrompt);
-        messages.add(user);
-
-        body.add("messages", messages);
+        String json = buildRequestBody(config.model(), systemPrompt, userPrompt, config.maxReplyChars());
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(resolveChatCompletionsUrl(config.apiBaseUrl())))
                 .timeout(Duration.ofSeconds(30))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + key.value())
-                .POST(HttpRequest.BodyPublishers.ofString(body.toString(), StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
                 .build();
 
         return CLIENT.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
@@ -87,6 +66,32 @@ public final class DeepSeekProvider implements AiProvider {
                     Constants.LOG.warn("DeepSeek request failed: {}", error.toString());
                     return AiResponse.failure("AI request failed");
                 });
+    }
+
+    static String buildRequestBody(String model, String systemPrompt, String userPrompt, int maxReplyChars) {
+        JsonObject body = new JsonObject();
+        body.addProperty("model", model == null || model.isBlank() ? "deepseek-flash" : model);
+        // Clip the spoken line after parse. Keep completion budget high so thinking leakage cannot empty content.
+        body.addProperty("max_tokens", Math.max(512, maxReplyChars));
+
+        JsonObject thinking = new JsonObject();
+        thinking.addProperty("type", "disabled");
+        body.add("thinking", thinking);
+        body.addProperty("reasoning_effort", "none");
+
+        JsonArray messages = new JsonArray();
+        JsonObject system = new JsonObject();
+        system.addProperty("role", "system");
+        system.addProperty("content", systemPrompt == null ? "" : systemPrompt);
+        messages.add(system);
+
+        JsonObject user = new JsonObject();
+        user.addProperty("role", "user");
+        user.addProperty("content", userPrompt == null ? "" : userPrompt);
+        messages.add(user);
+
+        body.add("messages", messages);
+        return body.toString();
     }
 
     /**
@@ -126,12 +131,10 @@ public final class DeepSeekProvider implements AiProvider {
                 return AiResponse.failure("Empty AI response");
             }
             JsonObject message = choices.get(0).getAsJsonObject().getAsJsonObject("message");
-            JsonElement contentEl = message.get("content");
-            if (contentEl == null || contentEl.isJsonNull()) {
-                return AiResponse.failure("Empty AI response");
-            }
-            String content = contentEl.getAsString().trim();
+            String content = readMessageContent(message);
             if (content.isEmpty()) {
+                Constants.LOG.warn("DeepSeek returned empty message content. Body: {}",
+                        body.substring(0, Math.min(240, body.length())));
                 return AiResponse.failure("Empty AI response");
             }
             int maxChars = SmartVillagersConfig.get().maxReplyChars();
@@ -143,6 +146,36 @@ public final class DeepSeekProvider implements AiProvider {
             Constants.LOG.debug("Failed to parse DeepSeek response", e);
             return AiResponse.failure("Invalid AI response");
         }
+    }
+
+    static String readMessageContent(JsonObject message) {
+        if (message == null) {
+            return "";
+        }
+        JsonElement contentEl = message.get("content");
+        if (contentEl == null || contentEl.isJsonNull()) {
+            return "";
+        }
+        if (contentEl.isJsonPrimitive()) {
+            return contentEl.getAsString().trim();
+        }
+        if (contentEl.isJsonArray()) {
+            StringBuilder text = new StringBuilder();
+            for (JsonElement part : contentEl.getAsJsonArray()) {
+                if (part == null || !part.isJsonObject()) {
+                    continue;
+                }
+                JsonObject obj = part.getAsJsonObject();
+                if (obj.has("text") && obj.get("text").isJsonPrimitive()) {
+                    if (!text.isEmpty()) {
+                        text.append(' ');
+                    }
+                    text.append(obj.get("text").getAsString().trim());
+                }
+            }
+            return text.toString().trim();
+        }
+        return "";
     }
 
     private record OptionalKey(String value) {

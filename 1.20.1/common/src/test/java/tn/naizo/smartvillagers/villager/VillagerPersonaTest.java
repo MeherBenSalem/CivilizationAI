@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VillagerPersonaTest {
@@ -33,6 +34,14 @@ class VillagerPersonaTest {
         VillagerPersona a = VillagerPersona.of(id, null, PersonaOverride.EMPTY, "minecraft:none");
         VillagerPersona b = VillagerPersona.of(id, null, PersonaOverride.EMPTY, "minecraft:none");
         assertEquals(a, b);
+    }
+
+    @Test
+    void visibleNameUsesDisplayName() {
+        UUID id = UUID.fromString("12345678-1234-1234-1234-123456789abc");
+        VillagerPersona persona = VillagerPersona.of(id, null, PersonaOverride.EMPTY, "minecraft:none");
+        assertEquals(persona.displayName(), VillagerPersona.visibleName(persona));
+        assertFalse(VillagerPersona.visibleName(persona).isBlank());
     }
 
     @Test

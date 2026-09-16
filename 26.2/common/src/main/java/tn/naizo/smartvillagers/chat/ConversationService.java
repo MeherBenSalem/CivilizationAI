@@ -13,6 +13,7 @@ import tn.naizo.smartvillagers.ai.AiResponse;
 import tn.naizo.smartvillagers.ai.DeepSeekProvider;
 import tn.naizo.smartvillagers.ai.FallbackDialogue;
 import tn.naizo.smartvillagers.ai.RateLimiter;
+import tn.naizo.smartvillagers.ai.ReplySelection;
 import tn.naizo.smartvillagers.config.ApiCredentials;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.display.ResponseDispatcher;
@@ -25,6 +26,7 @@ import tn.naizo.smartvillagers.villager.VillagerAiData;
 import tn.naizo.smartvillagers.villager.VillagerAvailability;
 import tn.naizo.smartvillagers.villager.VillagerContext;
 import tn.naizo.smartvillagers.villager.VillagerContextBuilder;
+import tn.naizo.smartvillagers.villager.VillagerIdentity;
 import tn.naizo.smartvillagers.villager.VillagerPersona;
 
 import java.util.List;
@@ -114,7 +116,7 @@ public final class ConversationService {
         MessageSignals bestSignals = null;
         for (VillagerCandidate candidate : candidates) {
             MessageSignals signals = MessageSignals.analyze(message, candidate.persona().displayName());
-            boolean looking = VillagerSelector.isLookingAt(player, candidate.villager());
+            boolean looking = VillagerSelector.isAddressing(player, candidate.villager(), candidate.distance());
             if (ActivationDetector.isActivated(mode, sanitized.text(), signals, looking)) {
                 best = candidate;
                 bestSignals = signals;
@@ -132,7 +134,7 @@ public final class ConversationService {
 
     private void respond(ServerPlayer player, VillagerCandidate candidate, String message, MessageSignals signals) {
         Villager villager = candidate.villager();
-        VillagerPersona persona = candidate.persona();
+        VillagerPersona persona = VillagerIdentity.applyVisibleIdentity(villager);
 
         Optional<String> busy = VillagerAvailability.busyReply(villager);
         if (busy.isPresent()) {
@@ -163,26 +165,50 @@ public final class ConversationService {
             return;
         }
 
+        completeAndSchedule(player, villager, persona, message, signals);
+    }
+
+    /**
+     * Forced talk for {@code /villagerai test}: skips activation and consent.
+     */
+    public boolean testTalk(ServerPlayer player, Villager villager) {
+        String message = "Hello! Please introduce yourself in one short sentence.";
+        VillagerPersona persona = VillagerIdentity.applyVisibleIdentity(villager);
+        MessageSignals signals = MessageSignals.analyze(message, persona.displayName());
+
+        if (!locks.tryLock(villager.getUUID(), player.getUUID())) {
+            player.sendSystemMessage(Component.literal(persona.displayName() + " is already talking to someone."));
+            return false;
+        }
+
+        sessions.start(player.getUUID(), villager.getUUID());
+        ThinkingIndicator.show(player, persona);
+
+        if (!provider.isConfigured() || !rateLimiter.tryAcquire(player.getUUID())) {
+            scheduleReply(player, villager, message, FallbackDialogue.reply(persona, signals), 10);
+            return true;
+        }
+
+        completeAndSchedule(player, villager, persona, message, signals);
+        return true;
+    }
+
+    private void completeAndSchedule(ServerPlayer player, Villager villager, VillagerPersona persona,
+                                     String message, MessageSignals signals) {
         VillagerAiData data = VillagerAiData.get(villager);
         VillagerContext context = VillagerContextBuilder.from(player, villager, data.memory(), persona);
         AiRequest request = new AiRequest(context, message);
-
         MinecraftServer server = player.level().getServer();
         provider.complete(request).whenComplete((AiResponse response, Throwable error) -> {
             rateLimiter.release();
-            String reply;
             if (error != null || response == null || !response.ok()) {
                 Constants.LOG.warn("AI failed, using fallback: {}",
                         error != null ? error.toString() : (response != null ? response.error() : "null"));
-                reply = FallbackDialogue.reply(persona, signals);
-            } else {
-                MessageSanitizer.Sanitized cleaned = MessageSanitizer.sanitize(response.text());
-                reply = cleaned.valid() ? cleaned.text() : FallbackDialogue.reply(persona, signals);
             }
-
-            String finalReply = reply;
+            String reply = ReplySelection.resolve(error != null ? AiResponse.failure(error.toString()) : response,
+                    persona, signals);
             if (server != null) {
-                server.execute(() -> scheduleReply(player, villager, message, finalReply, thinkingDelay()));
+                server.execute(() -> scheduleReply(player, villager, message, reply, thinkingDelay()));
             } else {
                 locks.unlock(villager.getUUID(), player.getUUID());
             }

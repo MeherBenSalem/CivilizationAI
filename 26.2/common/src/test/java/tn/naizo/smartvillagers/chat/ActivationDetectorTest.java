@@ -25,4 +25,18 @@ class ActivationDetectorTest {
         MessageSignals signals = MessageSignals.analyze("anything", null);
         assertTrue(ActivationDetector.isActivated(ActivationMode.ALWAYS_NEARBY, "anything", signals, false));
     }
+
+    @Test
+    void smartActivatesOnShortMessageWhenLookingOrClose() {
+        MessageSignals signals = MessageSignals.analyze("test", "Aldric");
+        assertTrue(ActivationDetector.isActivated(ActivationMode.SMART, "test", signals, true));
+        assertFalse(ActivationDetector.isActivated(ActivationMode.SMART, "test", signals, false));
+    }
+
+    @Test
+    void closeDistanceCountsAsAddressing() {
+        assertTrue(ActivationDetector.isCloseEnough(3.0));
+        assertTrue(ActivationDetector.isCloseEnough(6.0));
+        assertFalse(ActivationDetector.isCloseEnough(6.1));
+    }
 }

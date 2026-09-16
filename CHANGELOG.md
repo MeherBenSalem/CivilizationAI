@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.4
+
+- Add `ai.apiKey` to `config/smartvillagers/config.toml` (env `DEEPSEEK_API_KEY` and `secrets.toml` still override it).
+- Disable DeepSeek thinking with `reasoning_effort=none` so villager replies are not empty.
+- Show persona names as villager nametags on first talk.
+- Nearby chat (within 6 blocks) activates without a perfect crosshair.
+- Add `/villagerai test` to probe AI, identity, mixin, and Simple Voice Chat in-game.
+- Fallback lines always include the villager’s name and profession.
+
 ## 1.1.2
 
 - Fix config load crash when Night-Config stores whole numbers as `Integer` (e.g. `ai.playerCooldownMs = 3000`). That ClassCastException forced defaults and broke reload.

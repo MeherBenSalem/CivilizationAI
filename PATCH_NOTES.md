@@ -1,7 +1,9 @@
-# Smart Villagers AI 1.1.2
+# Smart Villagers AI 1.1.4
 
-- Fix config load crash: Night-Config stores `ai.playerCooldownMs = 3000` as Integer, but the mod cast it as Long and fell back to defaults (reload broken).
-- Warn-log DeepSeek HTTP failures (wrong `ai.model` / key issues).
-- Warn-log voice TTS/playback failures; `/villagerai debug` shows real pending and in-flight counts.
+- Put your DeepSeek key in `config/smartvillagers/config.toml` as `ai.apiKey` (or keep using `DEEPSEEK_API_KEY` / `secrets.toml`).
+- DeepSeek thinking is fully off so replies are not empty. Default model remains `deepseek-flash`.
+- Villagers get a visible nametag from their persona.
+- Stand next to a villager and chat — you no longer need a perfect crosshair.
+- New command: `/villagerai test` (op). Stand next to a villager; it prints identity, API key source, and whether Simple Voice Chat is ready, then forces a reply.
 
-Recommended model: `deepseek-flash` (not `deepseek-flash`).
+Voice still needs [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) on the server and client. Without it, villagers stay text-only and `/villagerai test` reports `Simple Voice Chat: missing (text only)`.

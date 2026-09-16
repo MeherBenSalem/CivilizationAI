@@ -28,8 +28,8 @@ export DEEPSEEK_API_KEY=your_key
 
 ## Making changes
 
-1. Create a branch from the Minecraft version branch you are targeting (`main`, `1.20.1`, or `26.2`).
-2. Put shared logic in `common/`. Keep loader modules thin (events, ServiceLoader, metadata).
+1. Create a branch from `main`. Minecraft versions live in folders (`1.20.1/`, `1.21.1/`, `26.2/`), not separate git branches.
+2. Put shared logic in each workspace `common/` (port the same behavior to all three). Keep loader modules thin (events, ServiceLoader, metadata).
 3. Add or update unit tests for pure logic when practical.
 4. Run `./gradlew build` before opening a PR.
 

@@ -42,7 +42,8 @@ public final class SmartVillagersConfig {
                 config.save();
             } else {
                 config.load();
-                if (ensureVoiceKeys(config)) {
+                boolean migrated = ensureVoiceKeys(config) | ensureAiKey(config);
+                if (migrated) {
                     config.save();
                 }
             }
@@ -79,6 +80,8 @@ public final class SmartVillagersConfig {
         config.set("persona.allowPlayersEditPersona", defaults.allowPlayersEditPersona());
         config.set("ai.apiBaseUrl", defaults.apiBaseUrl());
         config.set("ai.model", defaults.model());
+        config.set("ai.apiKey", "");
+        applyAiKeyComment(config);
         applyVoiceDefaults(config);
     }
 
@@ -109,6 +112,26 @@ public final class SmartVillagersConfig {
         }
         applyVoiceDefaults(config);
         return true;
+    }
+
+    /**
+     * Writes {@code ai.apiKey} into an existing config that predates it.
+     * @return true if the file should be saved
+     */
+    static boolean ensureAiKey(Config config) {
+        if (config.contains("ai.apiKey")) {
+            return false;
+        }
+        config.set("ai.apiKey", "");
+        applyAiKeyComment(config);
+        return true;
+    }
+
+    private static void applyAiKeyComment(Config config) {
+        if (config instanceof com.electronwill.nightconfig.core.CommentedConfig commented) {
+            commented.setComment("ai.apiKey",
+                    "DeepSeek API key. Env DEEPSEEK_API_KEY and secrets.toml override this. Leave empty for local fallback dialogue.");
+        }
     }
 
     static Snapshot readSnapshot(Config config) {
