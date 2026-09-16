@@ -9,6 +9,7 @@
 - Add `/villagerai test` to probe AI, identity, mixin, and Simple Voice Chat in-game.
 - Fallback lines always include the villager’s name and profession.
 - Fix silent dropped replies: pending responses were decremented once per dimension, then delivered in the Nether/End where the villager does not exist.
+- Speak villager replies with Windows TTS (SAPI) through Simple Voice Chat; stream audio in 20ms frames so SVC actually plays it.
 
 ## 1.1.2
 

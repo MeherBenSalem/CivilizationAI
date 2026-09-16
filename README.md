@@ -69,7 +69,7 @@ Replies are **text by default**. Spoken audio is a soft extra:
 
 Without Simple Voice Chat, or with `voice.enabled = false`, villagers stay text-only. The log prints this **once** on startup. `voice.fallbackToText = true` (default) still shows chat even when speech plays.
 
-This is not neural cloud TTS — it is a small in-mod voice meant to be heard in proximity, not a studio voiceover. Volume is also adjustable in Simple Voice Chat under the **Smart Villagers** category.
+On **Windows**, replies are read aloud with the system TTS voice (SAPI) through Simple Voice Chat. On other OSes, a built-in villager voice is used. Unmute the **Smart Villagers** category in Simple Voice Chat if you hear nothing.
 
 ## Installation
 

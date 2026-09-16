@@ -83,7 +83,7 @@ public final class FormantTtsSynthesizer implements TtsSynthesizer {
         for (double sample : mix) {
             peak = Math.max(peak, Math.abs(sample));
         }
-        double gain = 0.35 * request.volume() / peak;
+        double gain = 0.85 * request.volume() / peak;
         short[] pcm = new short[mix.length];
         for (int i = 0; i < mix.length; i++) {
             double v = mix[i] * gain;

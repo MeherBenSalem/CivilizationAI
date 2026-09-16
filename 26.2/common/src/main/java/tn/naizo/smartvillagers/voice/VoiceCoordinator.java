@@ -41,14 +41,28 @@ public final class VoiceCoordinator {
             return VoiceOutputPolicy.resolve(current, present, ready, false);
         }
 
+        short[] pcm = render(text, playerLanguage, pitchHz);
+        boolean played = play(entityId, entity, pcm, responseRadius);
+        return VoiceOutputPolicy.resolve(current, present, ready, played);
+    }
+
+    public short[] render(String text, String playerLanguage, int pitchHz) {
+        VoiceSettings current = settings.get();
         TtsRequest request = VillagerSpeech.fromReply(text, playerLanguage, current.volume(), pitchHz);
-        short[] pcm = tts.synthesize(request);
-        boolean played = pcm.length > 0 && voiceBackend.play(new VoicePlaybackRequest(
+        return tts.synthesize(request);
+    }
+
+    public boolean play(UUID entityId, Object entity, short[] pcm, double responseRadius) {
+        VoiceBackend voiceBackend = backend.get();
+        if (voiceBackend == null || !voiceBackend.isReady() || pcm == null || pcm.length == 0) {
+            return false;
+        }
+        VoiceSettings current = settings.get();
+        return voiceBackend.play(new VoicePlaybackRequest(
                 entityId,
                 entity,
                 pcm,
                 (float) current.effectiveRange(responseRadius)
         ));
-        return VoiceOutputPolicy.resolve(current, present, ready, played);
     }
 }

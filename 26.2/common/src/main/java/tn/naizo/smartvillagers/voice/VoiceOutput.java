@@ -1,10 +1,14 @@
 package tn.naizo.smartvillagers.voice;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import tn.naizo.smartvillagers.Constants;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.platform.Services;
 
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -13,8 +17,13 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class VoiceOutput {
     private static final AtomicReference<VoiceBackend> BACKEND = new AtomicReference<>(VoiceBackend.NO_OP);
+    private static final ExecutorService TTS = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "smartvillagers-tts");
+        thread.setDaemon(true);
+        return thread;
+    });
     private static final VoiceCoordinator COORDINATOR = new VoiceCoordinator(
-            new FormantTtsSynthesizer(),
+            new CompositeTtsSynthesizer(),
             BACKEND::get,
             () -> VoiceSettings.from(SmartVillagersConfig.get()),
             VoiceOutput::voiceChatPresent
@@ -38,6 +47,28 @@ public final class VoiceOutput {
 
     public static VoiceDelivery speak(Villager villager, String text, String playerLanguage) {
         try {
+            MinecraftServer server = villager.level().getServer();
+            boolean offload = WindowsSapiTts.available() && server != null && server.isSameThread();
+            if (offload) {
+                UUID id = villager.getUUID();
+                int pitch = VillagerVoicePitch.hz(id);
+                double radius = SmartVillagersConfig.get().responseRadius();
+                TTS.execute(() -> {
+                    try {
+                        short[] pcm = COORDINATOR.render(text, playerLanguage, pitch);
+                        server.execute(() -> {
+                            boolean played = COORDINATOR.play(id, villager, pcm, radius);
+                            if (SmartVillagersConfig.get().voiceEnabled() && voiceChatPresent() && backendReady()
+                                    && !played) {
+                                Constants.LOG.warn("Villager voice did not play. Check SVC volume category 'Smart Villagers'.");
+                            }
+                        });
+                    } catch (Throwable t) {
+                        Constants.LOG.warn("Villager voice playback failed; using text", t);
+                    }
+                });
+                return new VoiceDelivery(true, true);
+            }
             VoiceDelivery delivery = COORDINATOR.speak(
                     villager.getUUID(),
                     villager,

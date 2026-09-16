@@ -4,9 +4,12 @@ import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
 import de.maxhenkel.voicechat.api.audiochannel.EntityAudioChannel;
 import tn.naizo.smartvillagers.Constants;
+import tn.naizo.smartvillagers.voice.Pcm;
 import tn.naizo.smartvillagers.voice.VoiceBackend;
 import tn.naizo.smartvillagers.voice.VoicePlaybackRequest;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,11 +32,16 @@ final class SimpleVoiceChatBackend implements VoiceBackend {
             return false;
         }
         try {
+            List<short[]> frames = Pcm.frames960(request.pcm());
+            if (frames.isEmpty()) {
+                return false;
+            }
             EntityAudioChannel channel = api.createEntityAudioChannel(
-                    request.entityId(),
+                    UUID.randomUUID(),
                     api.fromEntity(request.entity())
             );
             if (channel == null) {
+                Constants.LOG.warn("Simple Voice Chat refused an entity audio channel for villager {}", request.entityId());
                 return false;
             }
             channel.setCategory(SimpleVoiceChatPlugin.CATEGORY_ID);
@@ -44,10 +52,18 @@ final class SimpleVoiceChatBackend implements VoiceBackend {
                 previous.stopPlaying();
             }
 
-            AudioPlayer player = api.createAudioPlayer(channel, api.createEncoder(), request.pcm());
+            Iterator<short[]> iterator = frames.iterator();
+            AudioPlayer player = api.createAudioPlayer(channel, api.createEncoder(), () -> {
+                if (!iterator.hasNext()) {
+                    return null;
+                }
+                return iterator.next();
+            });
             player.setOnStopped(() -> playing.remove(request.entityId(), player));
             playing.put(request.entityId(), player);
             player.startPlaying();
+            Constants.LOG.info("Playing {} villager voice samples ({} frames) via Simple Voice Chat",
+                    request.pcm().length, frames.size());
             return true;
         } catch (Throwable t) {
             Constants.LOG.warn("Simple Voice Chat rejected villager audio", t);
