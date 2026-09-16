@@ -1,4 +1,4 @@
-# Build is assumed done into dist/. Upload to Modrinth + CurseForge.
+# Build is assumed done into all-jars/ (or dist/). Upload to Modrinth + CurseForge.
 # Tokens: C:\Users\mahou\NightBeam-Knowledge-Base\secrets\local.env
 #
 # Usage:
@@ -17,8 +17,8 @@ $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 Set-Location $root
 
-if (-not (Test-Path (Join-Path $root "dist"))) {
-    throw "dist/ missing - build jars first"
+if (-not (Test-Path (Join-Path $root "all-jars")) -and -not (Test-Path (Join-Path $root "dist"))) {
+    throw "all-jars/ (or dist/) missing - run .\gradlew.bat buildAll first"
 }
 
 # Ensure PATCH_NOTES exists on current branch checkout

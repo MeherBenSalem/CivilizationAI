@@ -1,5 +1,6 @@
 /**
- * Upload Smart Villagers AI dist/ jars to Modrinth + CurseForge.
+ * Upload Smart Villagers AI jars to Modrinth + CurseForge.
+ * Prefers all-jars/ (multi-workspace buildAll), falls back to dist/.
  *
  * Usage:
  *   node scripts/upload_platforms.mjs
@@ -13,7 +14,6 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
-const DIST = path.join(ROOT, "dist");
 
 const MODRINTH_ID = "l9oZCCPS";
 const CURSEFORGE_ID = "1567718";
@@ -21,11 +21,27 @@ const MOD_TITLE = "Smart Villagers AI";
 const FABRIC_API_MODRINTH = "P7dR8mSH";
 const VOICECHAT_MODRINTH = "9eGKb6K1";
 
+function jarDir() {
+  const allJars = path.join(ROOT, "all-jars");
+  const dist = path.join(ROOT, "dist");
+  if (fs.existsSync(allJars)) return allJars;
+  if (fs.existsSync(dist)) return dist;
+  throw new Error("Neither all-jars/ nor dist/ exists - run buildAll first");
+}
+
 function readGradleVersion() {
-  const props = fs.readFileSync(path.join(ROOT, "gradle.properties"), "utf8");
-  const m = props.match(/^version=(.+)$/m);
-  if (!m) throw new Error("version= missing from gradle.properties");
-  return m[1].trim();
+  const versionFile = path.join(ROOT, "VERSION");
+  if (fs.existsSync(versionFile)) {
+    return fs.readFileSync(versionFile, "utf8").trim();
+  }
+  for (const rel of ["1.21.1/gradle.properties", "gradle.properties"]) {
+    const propsPath = path.join(ROOT, rel);
+    if (!fs.existsSync(propsPath)) continue;
+    const props = fs.readFileSync(propsPath, "utf8");
+    const m = props.match(/^version=(.+)$/m);
+    if (m) return m[1].trim();
+  }
+  throw new Error("VERSION / gradle.properties version= missing");
 }
 
 async function loadEnv() {
@@ -133,6 +149,7 @@ async function main() {
       ? fs.readFileSync(changelogPath, "utf8")
       : `## ${MOD_TITLE} ${VERSION}\n\nRelease ${VERSION}.`;
 
+  const DIST = jarDir();
   const jars = fs
     .readdirSync(DIST)
     .filter((f) => f.endsWith(".jar") && !f.includes("-sources") && !f.includes("-javadoc"))
