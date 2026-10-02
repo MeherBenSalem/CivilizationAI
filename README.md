@@ -6,15 +6,15 @@ Villagers you can talk to. Stand near a villager, speak in normal chat, and they
 
 - **Proximity chat** — no chat commands needed to talk; activation is smart (look-at, name, greeting, nearby)
 - **Personalities** — deterministic per-villager personas, plus player-editable overrides
-- **DeepSeek AI** — OpenAI-compatible chat completions with local fallback dialogue
+- **Multiple AI providers** — DeepSeek, NanoGPT subscription/PAYG, OpenAI, OpenRouter, Ollama, LM Studio and custom Chat Completions endpoints, with local fallback dialogue
 - **Spoken voice (optional)** — text chat by default; when [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) is installed, nearby players can hear the villager. Language follows the AI reply / your game language (no separate TTS locale setting)
 - **Privacy opt-in** — player consent before messages are sent to an AI provider
-- **MultiLoader** — Fabric, Forge, and NeoForge on Minecraft 1.21.1
+- **MultiLoader** — Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), and 26.2 (Fabric/NeoForge)
 
 ## Requirements
 
-- Minecraft 1.21.1
-- Java 21
+- Minecraft 1.20.1, 1.21.1 or 26.2, matching your jar
+- Java 17 (1.20.1), Java 21 (1.21.1) or Java 25 (26.2)
 - One of: Fabric Loader + [Fabric API](https://modrinth.com/mod/fabric-api), Forge, or NeoForge
 - Optional: a DeepSeek **API key** for live AI replies (not a downloadable jar)
 - Optional: [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) on the **server and clients** if you want villagers to speak out loud (soft dependency — without it the mod stays text-only and will not crash)
@@ -27,6 +27,10 @@ There are two different “APIs” people mix up:
 | **DeepSeek API** (live villager AI) | No. You create a key in DeepSeek’s web console. | Official docs: [Your First API Call](https://api-docs.deepseek.com/). Create a key at [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys). |
 
 Forge and NeoForge do **not** need Fabric API.
+
+## Multiple AI providers
+
+For NanoGPT subscriptions, other hosted providers and local models, see the [AI provider setup guide](docs/ai-providers.md). Version 1.1.5 adds provider presets, a custom endpoint mode and token compatibility controls. Choose a NanoGPT API key and an included model with `NANOGPT_SUBSCRIPTION`.
 
 ## DeepSeek API key (optional)
 
@@ -53,7 +57,7 @@ Or create **`config/smartvillagers/secrets.toml`** yourself (this file is **not*
 apiKey = "your_key_here"
 ```
 
-Priority: `DEEPSEEK_API_KEY` environment variable, then `secrets.toml`, then `config.toml` `ai.apiKey`. On a dedicated server, set the env var on the process, or edit the **server’s** `config/smartvillagers/` files.
+For `DEEPSEEK`, priority: `SMARTVILLAGERS_API_KEY`, then `DEEPSEEK_API_KEY` environment variable, then `secrets.toml`, then `config.toml` `ai.apiKey`. On a dedicated server, set the env var on the process, or edit the **server’s** `config/smartvillagers/` files.
 
 Without a key, villagers still talk using local fallback dialogue.
 
@@ -98,7 +102,7 @@ Examples:
 
 - The `config/smartvillagers/` directory is created if missing.
 - If `config.toml` does **not** exist, defaults are written and saved.
-- If `config.toml` already exists, it is loaded and **not** overwritten, except a missing `[voice]` section is added once (1.1.0+) and a missing `ai.apiKey` is added as `""` (1.1.4+).
+- If `config.toml` already exists, it is loaded and **not** overwritten, except missing voice/API-key settings and provider compatibility settings are added during migration. Existing model/key/custom endpoint values are preserved.
 - Put a DeepSeek key in `ai.apiKey`, or override it with `DEEPSEEK_API_KEY` / `secrets.toml`.
 - `secrets.toml` is never created automatically.
 
@@ -121,6 +125,10 @@ cancelGlobalChatWhenTalking = false
 requirePlayerOptIn = true
 
 [ai]
+provider = "DEEPSEEK"
+maxTokens = 2048
+tokenLimitParameter = "AUTO"
+endpointMode = "AUTO"
 maxReplyChars = 180
 playerCooldownMs = 3000
 globalRequestsPerMinute = 30
@@ -164,10 +172,10 @@ After editing, run `/villagerai reload` or restart. `/villagerai status` shows w
 ## Building
 
 ```bash
-./gradlew build
+./gradlew buildAll
 ```
 
-Jars are produced under `fabric/build/libs/`, `forge/build/libs/`, and `neoforge/build/libs/`.
+Release jars are collected into `all-jars/`. Each Minecraft workspace also has loader-specific `build/libs/` directories. Set `JAVA_HOME_17`, `JAVA_HOME_21` and `JAVA_HOME_25` for the full build.
 
 ```bash
 ./gradlew :neoforge:runClient
@@ -175,13 +183,13 @@ Jars are produced under `fabric/build/libs/`, `forge/build/libs/`, and `neoforge
 ./gradlew :forge:runClient
 ```
 
-## Version branches
+## Minecraft workspaces
 
-| Branch | Minecraft | Loaders |
+| Directory | Minecraft | Loaders |
 |--------|-----------|---------|
-| `main` | 1.21.1 | Fabric, Forge, NeoForge |
-| `1.20.1` | 1.20.1 | Fabric, Forge |
-| `26.2` | 26.2 | Fabric, NeoForge |
+| `1.21.1/` | 1.21.1 | Fabric, Forge, NeoForge |
+| `1.20.1/` | 1.20.1 | Fabric, Forge |
+| `26.2/` | 26.2 | Fabric, NeoForge |
 
 ## Store listings
 

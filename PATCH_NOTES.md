@@ -1,11 +1,12 @@
-# Smart Villagers AI 1.1.4
+# Smart Villagers AI 1.1.5
 
-- Put your DeepSeek key in `config/smartvillagers/config.toml` as `ai.apiKey` (or keep using `DEEPSEEK_API_KEY` / `secrets.toml`).
-- DeepSeek thinking is fully off so replies are not empty. Default model remains `deepseek-flash`.
-- Villagers get a visible nametag from their persona.
-- Stand next to a villager and chat — you no longer need a perfect crosshair.
-- New command: `/villagerai test` (op). Stand next to a villager; it prints identity, API key source, and whether Simple Voice Chat is ready, then forces a reply.
-- Fix replies being silently dropped: the delay queue was ticked once per dimension (overworld + nether + end), so the villager lookup often ran in the wrong world. `/villagerai test` now prints the reply and `Voice spoken: yes/no` directly.
-- Villagers now **read the reply out loud** on Windows using the system TTS voice, played through Simple Voice Chat. Unmute the **Smart Villagers** volume category if you still hear nothing.
+- Add provider presets for DeepSeek, NanoGPT pay-as-you-go and subscription, OpenAI, OpenRouter, Ollama and LM Studio, plus custom OpenAI-compatible endpoints.
+- Fix prefixed base URLs, including NanoGPT's subscription API, by resolving the Chat Completions route correctly.
+- Send DeepSeek-specific thinking controls only to DeepSeek. Add configurable completion token budgets and token parameter compatibility.
+- Preserve existing custom endpoints and keys; select environment keys for the chosen provider. Local loopback servers can run without a key.
+- Add useful authentication, model, quota, billing and network diagnostics while keeping keys, prompts and provider response bodies out of logs.
+- Keep local dialogue fallback, privacy consent and optional voice support.
 
-Voice still needs [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) on the server and client. Without it, villagers stay text-only and `/villagerai test` reports `Simple Voice Chat: missing (text only)`.
+Supports Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge) and 26.2 (Fabric/NeoForge).
+
+NanoGPT subscription setup: choose `ai.provider = "NANOGPT_SUBSCRIPTION"`, use a NanoGPT API key and an exact model ID from its subscription-included model list. The mod does not automatically switch to a paid endpoint. See the [provider setup guide](https://github.com/MeherBenSalem/CivilizationAI/blob/main/docs/ai-providers.md).

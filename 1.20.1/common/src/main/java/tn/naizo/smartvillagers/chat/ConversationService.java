@@ -9,7 +9,7 @@ import tn.naizo.smartvillagers.Constants;
 import tn.naizo.smartvillagers.ai.AiProvider;
 import tn.naizo.smartvillagers.ai.AiRequest;
 import tn.naizo.smartvillagers.ai.AiResponse;
-import tn.naizo.smartvillagers.ai.DeepSeekProvider;
+import tn.naizo.smartvillagers.ai.OpenAiCompatibleProvider;
 import tn.naizo.smartvillagers.ai.FallbackDialogue;
 import tn.naizo.smartvillagers.ai.RateLimiter;
 import tn.naizo.smartvillagers.ai.ReplySelection;
@@ -42,7 +42,7 @@ public final class ConversationService {
     private final PrivacyManager privacy = new PrivacyManager();
 
     public ConversationService() {
-        this(new DeepSeekProvider());
+        this(new OpenAiCompatibleProvider());
     }
 
     public ConversationService(AiProvider provider) {
@@ -183,11 +183,11 @@ public final class ConversationService {
 
         if (!provider.isConfigured() || !rateLimiter.tryAcquire(player.getUUID())) {
             deliverNow(player, villager, message, FallbackDialogue.reply(persona, signals),
-                    !provider.isConfigured() ? "API key not configured; fallback used." : "Rate limited; fallback used.");
+                    !provider.isConfigured() ? "AI provider not configured; check provider, endpoint, model and key. Fallback used." : "Rate limited; fallback used.");
             return true;
         }
 
-        player.sendSystemMessage(Component.literal("Waiting for DeepSeek (up to 30s)…"));
+        player.sendSystemMessage(Component.literal("Waiting for AI provider (up to 30s)…"));
         completeAndDeliverNow(player, villager, persona, message, signals);
         return true;
     }
@@ -223,9 +223,9 @@ public final class ConversationService {
                         scheduleReply(player, villager, message, reply, thinkingDelay());
                     } else {
                         String note = usedFallback
-                                ? "DeepSeek failed (" + (error != null ? error.toString()
+                                ? "AI provider failed (" + (error != null ? error.toString()
                                 : (response != null ? response.error() : "null")) + "); fallback used."
-                                : "DeepSeek replied.";
+                                : "AI provider replied.";
                         deliverNow(player, villager, message, reply, note);
                     }
                 });

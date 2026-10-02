@@ -7,25 +7,31 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DeepSeekProviderTest {
+class OpenAiCompatibleProviderTest {
+    @Test
+    void resolvesNanoGptSubscriptionBaseUrl() {
+        assertEquals("https://nano-gpt.com/api/subscription/v1/chat/completions",
+                OpenAiCompatibleProvider.resolveChatCompletionsUrl("https://nano-gpt.com/api/subscription/v1/"));
+    }
+
     @Test
     void resolvesSdkBaseUrlToChatCompletions() {
         assertEquals(
                 "https://api.deepseek.com/chat/completions",
-                DeepSeekProvider.resolveChatCompletionsUrl("https://api.deepseek.com"));
+                OpenAiCompatibleProvider.resolveChatCompletionsUrl("https://api.deepseek.com"));
         assertEquals(
                 "https://api.deepseek.com/chat/completions",
-                DeepSeekProvider.resolveChatCompletionsUrl("https://api.deepseek.com/"));
+                OpenAiCompatibleProvider.resolveChatCompletionsUrl("https://api.deepseek.com/"));
         assertEquals(
                 "https://api.deepseek.com/v1/chat/completions",
-                DeepSeekProvider.resolveChatCompletionsUrl("https://api.deepseek.com/v1"));
+                OpenAiCompatibleProvider.resolveChatCompletionsUrl("https://api.deepseek.com/v1"));
     }
 
     @Test
     void keepsFullChatCompletionsUrl() {
         assertEquals(
                 "https://api.deepseek.com/chat/completions",
-                DeepSeekProvider.resolveChatCompletionsUrl(
+                OpenAiCompatibleProvider.resolveChatCompletionsUrl(
                         "https://api.deepseek.com/chat/completions"));
     }
 
@@ -34,7 +40,7 @@ class DeepSeekProviderTest {
         String body = """
                 {"choices":[{"message":{"role":"assistant","content":"Hello traveler!"}}]}
                 """;
-        AiResponse response = DeepSeekProvider.parseResponse(200, body);
+        AiResponse response = OpenAiCompatibleProvider.parseResponse(200, body);
         assertTrue(response.ok());
         assertEquals("Hello traveler!", response.text());
     }
@@ -44,14 +50,14 @@ class DeepSeekProviderTest {
         String body = """
                 {"choices":[{"message":{"role":"assistant","content":null,"reasoning_content":"..."}}]}
                 """;
-        AiResponse response = DeepSeekProvider.parseResponse(200, body);
+        AiResponse response = OpenAiCompatibleProvider.parseResponse(200, body);
         assertTrue(!response.ok());
-        assertEquals("Empty AI response", response.error());
+        assertTrue(response.error().startsWith("Empty AI response"));
     }
 
     @Test
     void requestDisablesThinkingAndSetsReasoningEffortNone() {
-        String json = DeepSeekProvider.buildRequestBody("deepseek-flash", "sys", "hi", 180);
+        String json = OpenAiCompatibleProvider.buildRequestBody(tn.naizo.smartvillagers.config.SmartVillagersConfig.Snapshot.defaults(), "sys", "hi");
         JsonObject body = JsonParser.parseString(json).getAsJsonObject();
         assertEquals("deepseek-flash", body.get("model").getAsString());
         assertEquals("disabled", body.getAsJsonObject("thinking").get("type").getAsString());
@@ -66,7 +72,7 @@ class DeepSeekProviderTest {
         String body = """
                 {"choices":[{"message":{"role":"assistant","content":[{"type":"text","text":"Hello traveler!"}]}}]}
                 """;
-        AiResponse response = DeepSeekProvider.parseResponse(200, body);
+        AiResponse response = OpenAiCompatibleProvider.parseResponse(200, body);
         assertTrue(response.ok());
         assertEquals("Hello traveler!", response.text());
     }

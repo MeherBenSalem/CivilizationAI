@@ -109,6 +109,7 @@ public final class VillagerAiCommands {
         line(source, "Provider", conversations.provider().name()
                 + (conversations.provider().isConfigured() ? " (ready)" : " (not configured)"));
         line(source, "API key source", ApiCredentials.source());
+        line(source, "Endpoint", tn.naizo.smartvillagers.ai.OpenAiCompatibleProvider.displayEndpoint(config));
         line(source, "Opt-in required", String.valueOf(config.requirePlayerOptIn()));
         boolean svc = VoiceAvailability.isModLoaded(id -> {
             try {
@@ -157,8 +158,9 @@ public final class VillagerAiCommands {
         line(source, "Provider", conversations.provider().name()
                 + (conversations.provider().isConfigured() ? " (ready)" : " (not configured)"));
         line(source, "API key source", ApiCredentials.source());
+        line(source, "Endpoint", tn.naizo.smartvillagers.ai.OpenAiCompatibleProvider.displayEndpoint(config));
         line(source, "Model", config.model());
-        line(source, "API URL", config.apiBaseUrl());
+        line(source, "API URL", tn.naizo.smartvillagers.ai.OpenAiCompatibleProvider.displayEndpoint(config));
         line(source, "Consent", conversations.privacy().hasConsent(player) ? "yes" : "no (test still calls AI)");
         boolean svc = VoiceAvailability.isModLoaded(id -> {
             try {
@@ -171,7 +173,7 @@ public final class VillagerAiCommands {
         line(source, "Simple Voice Chat", svc ? "present" : "missing (text only)");
         line(source, "Voice backend", VoiceOutput.backendReady() ? "ready" : "not ready");
         source.sendSuccess(() -> Component.literal("Sending test line to " + persona.displayName()
-                        + " — wait up to 30s for DeepSeek, then a chat line and Voice spoken: yes/no.")
+                        + " — wait up to 30s for the AI provider, then a chat line and Voice spoken: yes/no.")
                 .withStyle(ChatFormatting.YELLOW), false);
 
         boolean started = conversations.testTalk(player, villager);

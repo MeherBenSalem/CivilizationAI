@@ -10,6 +10,7 @@
  */
 import fs from "fs";
 import path from "path";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -92,9 +93,9 @@ function dependenciesFor(loader) {
 }
 
 function curseRelations(loader) {
-  const projects = [{ slug: "simple-voice-chat", type: "optionalDependency" }];
+  const projects = [{ projectID: 416089, type: "optionalDependency" }];
   if (loader === "fabric") {
-    projects.unshift({ slug: "fabric-api", type: "requiredDependency" });
+    projects.unshift({ projectID: 306612, type: "requiredDependency" });
   }
   return { projects };
 }
@@ -135,8 +136,9 @@ async function uploadModrinthFile(file, changelog, token, dryRun, version) {
     });
     const text = await res.text();
     if (res.ok) {
-      console.log("Modrinth OK", versionNumber, file.name);
-      return;
+      const uploaded = JSON.parse(text);
+      console.log("Modrinth OK", versionNumber, file.name, uploaded.id);
+      return uploaded.id;
     }
     lastErr = new Error(`Modrinth ${res.status} ${versionNumber} ${text.slice(0, 800)}`);
     if ((res.status === 500 || res.status === 502 || res.status === 503 || res.status === 429) && attempt < 5) {
@@ -172,6 +174,35 @@ async function main() {
     .sort((a, b) => a.name.localeCompare(b.name));
   if (!jars.length) throw new Error(`No ${VERSION} smartvillagers jars in ${DIST}`);
 
+  const expected = ["1.20.1-fabric", "1.20.1-forge", "1.21.1-fabric", "1.21.1-forge",
+    "1.21.1-neoforge", "26.2-fabric", "26.2-neoforge"].sort();
+  if (JSON.stringify(jars.map(j => `${j.game}-${j.loader}`).sort()) !== JSON.stringify(expected)) {
+    throw new Error("Release must contain exactly the seven supported Minecraft/loader jars");
+  }
+  const reportPath = path.join(DIST, `client-verification-${VERSION}.json`);
+  if (!fs.existsSync(reportPath)) throw new Error("Run scripts/smoke-client.py before publishing");
+  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+  for (const jar of jars) {
+    const hash = createHash("sha512").update(fs.readFileSync(jar.jar)).digest("hex");
+    if (!report.some(row => row.jar === jar.name && row.passed && row.sha512 === hash
+      && row.bootEvidence?.includes("httpContract=true"))) {
+      throw new Error(`Missing client/HTTP verification for exact jar bytes: ${jar.name}`);
+    }
+  }
+  const resultsPath = path.join(DIST, `publish-results-${VERSION}.json`);
+  const results = fs.existsSync(resultsPath) ? JSON.parse(fs.readFileSync(resultsPath, "utf8")) : [];
+  for (const row of results) {
+    const jar = jars.find(item => item.name === row.jar);
+    if (jar && row.sha512 !== createHash("sha512").update(fs.readFileSync(jar.jar)).digest("hex")) {
+      throw new Error(`Jar changed after upload; use a new release version: ${row.jar}`);
+    }
+  }
+  const record = (platform, jar, id) => {
+    results.push({ platform, jar: jar.name, id,
+      sha512: createHash("sha512").update(fs.readFileSync(jar.jar)).digest("hex") });
+    fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
+  };
+
   const { MODRINTH_TOKEN, CURSEFORGE_TOKEN, CURSEFORGE_API_KEY } = process.env;
   if (!MODRINTH_TOKEN || !CURSEFORGE_TOKEN || !CURSEFORGE_API_KEY) {
     throw new Error("Set MODRINTH_TOKEN, CURSEFORGE_TOKEN, CURSEFORGE_API_KEY");
@@ -181,7 +212,9 @@ async function main() {
 
   if (!args.curseforgeOnly) {
     for (const jar of jars) {
-      await uploadModrinthFile(jar, changelog, MODRINTH_TOKEN, args.dryRun, VERSION);
+      if (!args.dryRun && results.some(row => row.platform === "modrinth" && row.jar === jar.name)) continue;
+      const id = await uploadModrinthFile(jar, changelog, MODRINTH_TOKEN, args.dryRun, VERSION);
+      if (!args.dryRun) record("modrinth", jar, id);
     }
   }
 
@@ -229,6 +262,7 @@ async function main() {
   };
 
   for (const p of jars) {
+    if (!args.dryRun && results.some(row => row.platform === "curseforge" && row.jar === p.name)) continue;
     const gameId = await resolveGameId(p.game);
     const loaderId = LOADER_IDS[p.loader];
     if (!loaderId) throw new Error(`Unknown loader for ${p.name}`);
@@ -248,7 +282,7 @@ async function main() {
     cfForm.append("metadata", JSON.stringify(meta));
     cfForm.append("file", new Blob([fs.readFileSync(p.jar)]), p.name);
     let ok = false;
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
       const cfRes = await fetch(
         `https://minecraft.curseforge.com/api/projects/${CURSEFORGE_ID}/upload-file`,
         { method: "POST", headers: { "X-Api-Token": CURSEFORGE_TOKEN }, body: cfForm },
@@ -256,10 +290,11 @@ async function main() {
       const cfText = await cfRes.text();
       if (cfRes.ok) {
         console.log("CurseForge OK", p.name, cfText.slice(0, 120));
+        record("curseforge", p, JSON.parse(cfText).id);
         ok = true;
         break;
       }
-      if ((cfRes.status === 503 || cfRes.status === 429 || cfRes.status === 500) && attempt < 4) {
+      if ((cfRes.status === 503 || cfRes.status === 429 || cfRes.status === 500) && attempt < 3) {
         console.warn("CurseForge", cfRes.status, "for", p.name, "- retry", attempt);
         await new Promise((r) => setTimeout(r, 15000 * attempt));
         continue;

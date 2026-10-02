@@ -45,7 +45,7 @@ class DeepSeekSmokeTest {
                 "en_us"
         );
 
-        DeepSeekProvider provider = new DeepSeekProvider();
+        OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider();
         AiResponse response = provider.complete(new AiRequest(context, "Hello! How are the crops?"))
                 .get(40, TimeUnit.SECONDS);
 

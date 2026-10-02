@@ -42,7 +42,7 @@ public final class SmartVillagersConfig {
                 config.save();
             } else {
                 config.load();
-                boolean migrated = ensureVoiceKeys(config) | ensureAiKey(config);
+                boolean migrated = ensureVoiceKeys(config) | ensureAiKey(config) | ensureProviderKeys(config);
                 if (migrated) {
                     config.save();
                 }
@@ -81,6 +81,8 @@ public final class SmartVillagersConfig {
         config.set("ai.apiBaseUrl", defaults.apiBaseUrl());
         config.set("ai.model", defaults.model());
         config.set("ai.apiKey", "");
+        config.set("ai.provider", defaults.provider().name());
+        ensureProviderKeys(config);
         applyAiKeyComment(config);
         applyVoiceDefaults(config);
     }
@@ -130,11 +132,58 @@ public final class SmartVillagersConfig {
     private static void applyAiKeyComment(Config config) {
         if (config instanceof com.electronwill.nightconfig.core.CommentedConfig commented) {
             commented.setComment("ai.apiKey",
-                    "DeepSeek API key. Env DEEPSEEK_API_KEY and secrets.toml override this. Leave empty for local fallback dialogue.");
+                    "Selected provider's API key. SMARTVILLAGERS_API_KEY, provider-specific env and secrets.toml override this. Never share your key.");
         }
     }
 
+    static boolean ensureProviderKeys(Config config) {
+        boolean changed = false;
+        boolean legacy = !config.contains("ai.provider");
+        if (!config.contains("ai.endpointMode")) {
+            String mode = "AUTO";
+            if (legacy) {
+                try {
+                    String path = java.net.URI.create(string(config, "ai.apiBaseUrl", "")).getPath();
+                    if (path != null && !path.isEmpty() && !path.equals("/") && !path.equals("/v1")) mode = "FULL";
+                } catch (RuntimeException ignored) {
+                    // Invalid URLs are rejected by the transport.
+                }
+            }
+            config.set("ai.endpointMode", mode);
+            changed = true;
+        }
+        if (!config.contains("ai.provider")) {
+            config.set("ai.provider", AiProviderType.parse("", string(config, "ai.apiBaseUrl",
+                    "https://api.deepseek.com/chat/completions")).name());
+            changed = true;
+        }
+        if (!config.contains("ai.maxTokens")) {
+            config.set("ai.maxTokens", 2048);
+            changed = true;
+        }
+        if (!config.contains("ai.tokenLimitParameter")) {
+            config.set("ai.tokenLimitParameter", "AUTO");
+            changed = true;
+        }
+        if (config instanceof com.electronwill.nightconfig.core.CommentedConfig commented) {
+            commented.setComment("ai.provider", "DEEPSEEK, NANOGPT, NANOGPT_SUBSCRIPTION, OPENAI, OPENROUTER, OLLAMA, LMSTUDIO or CUSTOM. Presets select their own endpoint; apiBaseUrl is used only for CUSTOM.");
+            commented.setComment("ai.apiBaseUrl", "CUSTOM only: OpenAI-compatible base URL or full /chat/completions endpoint. Never put keys in the URL.");
+            commented.setComment("ai.endpointMode", "CUSTOM: AUTO appends /chat/completions unless already present. FULL preserves a complete URL, including legacy custom routes.");
+            commented.setComment("ai.model", "Exact model ID from the selected provider's model list. NanoGPT subscription requires an included model.");
+            commented.setComment("ai.maxTokens", "Completion token budget (including reasoning); replies are separately clipped to maxReplyChars.");
+            commented.setComment("ai.tokenLimitParameter", "AUTO, max_tokens, max_completion_tokens or NONE, according to your model/server API.");
+            applyAiKeyComment(config);
+        }
+        return changed;
+    }
+
     static Snapshot readSnapshot(Config config) {
+        String customUrl = config.contains("ai.apiBaseUrl")
+                ? string(config, "ai.apiBaseUrl", "") : "https://api.deepseek.com/chat/completions";
+        Object providerValue = config.get("ai.provider");
+        AiProviderType provider = !config.contains("ai.provider") ? AiProviderType.parse("", customUrl)
+                : providerValue instanceof String value && !value.isBlank()
+                ? AiProviderType.parse(value, customUrl) : AiProviderType.INVALID;
         return new Snapshot(
                 bool(config, "proximity.enabled", true),
                 number(config, "proximity.hearingRadius", 12.0),
@@ -152,8 +201,12 @@ public final class SmartVillagersConfig {
                 intNumber(config, "ai.thinkingDelayMinTicks", 20),
                 intNumber(config, "ai.thinkingDelayMaxTicks", 60),
                 bool(config, "persona.allowPlayersEditPersona", false),
-                string(config, "ai.apiBaseUrl", "https://api.deepseek.com/chat/completions"),
+                provider.endpoint(customUrl),
                 string(config, "ai.model", "deepseek-flash"),
+                provider,
+                Math.max(1, Math.min(32768, intNumber(config, "ai.maxTokens", 2048))),
+                string(config, "ai.tokenLimitParameter", "AUTO"),
+                string(config, "ai.endpointMode", "AUTO"),
                 bool(config, "voice.enabled", true),
                 clampVolume(number(config, "voice.volume", 1.0)),
                 Math.max(0.0, number(config, "voice.range", 0.0)),
@@ -237,6 +290,10 @@ public final class SmartVillagersConfig {
             boolean allowPlayersEditPersona,
             String apiBaseUrl,
             String model,
+            AiProviderType provider,
+            int maxTokens,
+            String tokenLimitParameter,
+            String endpointMode,
             boolean voiceEnabled,
             double voiceVolume,
             double voiceRange,
@@ -262,6 +319,10 @@ public final class SmartVillagersConfig {
                     false,
                     "https://api.deepseek.com/chat/completions",
                     "deepseek-flash",
+                    AiProviderType.DEEPSEEK,
+                    2048,
+                    "AUTO",
+                    "AUTO",
                     true,
                     1.0,
                     0.0,

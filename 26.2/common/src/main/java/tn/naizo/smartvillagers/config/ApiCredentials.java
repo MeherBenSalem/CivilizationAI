@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public final class ApiCredentials {
-    private static final String ENV_KEY = "DEEPSEEK_API_KEY";
     private static volatile boolean loaded;
     private static volatile String cachedKey;
     private static volatile String cachedSource = "none";
@@ -57,7 +56,7 @@ public final class ApiCredentials {
             return;
         }
 
-        String env = System.getenv(ENV_KEY);
+        String env = environmentKey(SmartVillagersConfig.get().provider(), System::getenv);
         String secretsKey = readTomlValue(configDir().resolve("secrets.toml"), "apiKey");
         String configKey = readTomlValue(configDir().resolve("config.toml"), "ai.apiKey");
         Resolved resolved = resolve(env, secretsKey, configKey);
@@ -88,5 +87,11 @@ public final class ApiCredentials {
 
     private static boolean notBlank(String value) {
         return value != null && !value.isBlank();
+    }
+
+    static String environmentKey(AiProviderType provider, java.util.function.Function<String, String> getenv) {
+        String general = getenv.apply("SMARTVILLAGERS_API_KEY");
+        if (notBlank(general)) return general;
+        return provider.keyEnvironment().isEmpty() ? null : getenv.apply(provider.keyEnvironment());
     }
 }

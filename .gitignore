@@ -48,4 +48,5 @@ replay_pid*.log
 # collected release jars
 all-jars/
 dist/
+scripts/__pycache__/
 
