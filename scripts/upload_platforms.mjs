@@ -93,9 +93,9 @@ function dependenciesFor(loader) {
 }
 
 function curseRelations(loader) {
-  const projects = [{ projectID: 416089, type: "optionalDependency" }];
+  const projects = [{ projectID: 416089, slug: "simple-voice-chat", type: "optionalDependency" }];
   if (loader === "fabric") {
-    projects.unshift({ projectID: 306612, type: "requiredDependency" });
+    projects.unshift({ projectID: 306612, slug: "fabric-api", type: "requiredDependency" });
   }
   return { projects };
 }
