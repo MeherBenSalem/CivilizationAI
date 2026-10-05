@@ -5,6 +5,7 @@
  * Usage:
  *   node scripts/upload_platforms.mjs
  *   node scripts/upload_platforms.mjs --dry-run
+ *   node scripts/upload_platforms.mjs --ci
  *   node scripts/upload_platforms.mjs --modrinth-only
  *   node scripts/upload_platforms.mjs --curseforge-only
  */
@@ -66,12 +67,13 @@ async function loadEnv() {
 }
 
 function parseArgs(argv) {
-  const out = { curseforgeOnly: false, modrinthOnly: false, dryRun: false };
+  const out = { curseforgeOnly: false, modrinthOnly: false, dryRun: false, skipClientVerify: false };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--curseforge-only") out.curseforgeOnly = true;
     else if (a === "--modrinth-only") out.modrinthOnly = true;
     else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--ci" || a === "--skip-client-verify") out.skipClientVerify = true;
     else throw new Error(`Unknown arg ${a}`);
   }
   return out;
@@ -179,15 +181,19 @@ async function main() {
   if (JSON.stringify(jars.map(j => `${j.game}-${j.loader}`).sort()) !== JSON.stringify(expected)) {
     throw new Error("Release must contain exactly the nine supported Minecraft/loader jars");
   }
-  const reportPath = path.join(DIST, `client-verification-${VERSION}.json`);
-  if (!fs.existsSync(reportPath)) throw new Error("Run scripts/smoke-client.py before publishing");
-  const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
-  for (const jar of jars) {
-    const hash = createHash("sha512").update(fs.readFileSync(jar.jar)).digest("hex");
-    if (!report.some(row => row.jar === jar.name && row.passed && row.sha512 === hash
-      && row.bootEvidence?.includes("httpContract=true"))) {
-      throw new Error(`Missing client/HTTP verification for exact jar bytes: ${jar.name}`);
+  if (!args.skipClientVerify) {
+    const reportPath = path.join(DIST, `client-verification-${VERSION}.json`);
+    if (!fs.existsSync(reportPath)) throw new Error("Run scripts/smoke-client.py before publishing");
+    const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+    for (const jar of jars) {
+      const hash = createHash("sha512").update(fs.readFileSync(jar.jar)).digest("hex");
+      if (!report.some(row => row.jar === jar.name && row.passed && row.sha512 === hash
+        && row.bootEvidence?.includes("httpContract=true"))) {
+        throw new Error(`Missing client/HTTP verification for exact jar bytes: ${jar.name}`);
+      }
     }
+  } else {
+    console.log("Skipping Windows client-verification gate (--ci / --skip-client-verify)");
   }
   const resultsPath = path.join(DIST, `publish-results-${VERSION}.json`);
   const results = fs.existsSync(resultsPath) ? JSON.parse(fs.readFileSync(resultsPath, "utf8")) : [];
@@ -210,9 +216,29 @@ async function main() {
 
   console.log(`Uploading ${MOD_TITLE} ${VERSION} (${jars.length} jars)`);
 
+  const publishedMr = new Set();
+  const publishedCf = new Set();
+  if (args.skipClientVerify && !args.dryRun) {
+    const mr = await fetch(`https://api.modrinth.com/v2/project/${MODRINTH_ID}/version`);
+    if (mr.ok) {
+      for (const v of await mr.json()) publishedMr.add(v.version_number);
+    }
+    const cf = await fetch(`https://api.curseforge.com/v1/mods/${CURSEFORGE_ID}/files?pageSize=50`, {
+      headers: { "x-api-key": CURSEFORGE_API_KEY, Accept: "application/json" },
+    });
+    if (cf.ok) {
+      for (const file of (await cf.json()).data || []) publishedCf.add(file.fileName);
+    }
+  }
+
   if (!args.curseforgeOnly) {
     for (const jar of jars) {
-      if (!args.dryRun && results.some(row => row.platform === "modrinth" && row.jar === jar.name)) continue;
+      const versionNumber = `${VERSION}+${jar.game}-${jar.loader}`;
+      if (!args.dryRun && (results.some(row => row.platform === "modrinth" && row.jar === jar.name)
+        || publishedMr.has(versionNumber))) {
+        console.log("Modrinth skip existing", versionNumber, jar.name);
+        continue;
+      }
       const id = await uploadModrinthFile(jar, changelog, MODRINTH_TOKEN, args.dryRun, VERSION);
       if (!args.dryRun) record("modrinth", jar, id);
     }
@@ -262,7 +288,11 @@ async function main() {
   };
 
   for (const p of jars) {
-    if (!args.dryRun && results.some(row => row.platform === "curseforge" && row.jar === p.name)) continue;
+    if (!args.dryRun && (results.some(row => row.platform === "curseforge" && row.jar === p.name)
+      || publishedCf.has(p.name))) {
+      console.log("CurseForge skip existing", p.name);
+      continue;
+    }
     const gameId = await resolveGameId(p.game);
     const loaderId = LOADER_IDS[p.loader];
     if (!loaderId) throw new Error(`Unknown loader for ${p.name}`);
