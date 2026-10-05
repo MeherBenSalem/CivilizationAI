@@ -1,0 +1,68 @@
+plugins {
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
+    // Automatically enable AccessTransformers if the file exists
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
+}
+
+dependencies {
+    compileOnly('net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7')
+    compileOnly(annotationProcessor('io.github.llamalad7:mixinextras-common:0.5.3'))
+    api 'com.electronwill.night-config:core:3.6.7'
+    api 'com.electronwill.night-config:toml:3.6.7'
+    compileOnly 'com.google.code.gson:gson:2.10.1'
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testImplementation 'com.electronwill.night-config:core:3.6.7'
+    testImplementation 'com.electronwill.night-config:toml:3.6.7'
+    testImplementation 'org.slf4j:slf4j-nop:2.0.16'
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+}
+
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named(variant) {
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+        configurations.named(variant) {
+            attributes {
+                attribute(loaderAttribute, 'common')
+            }
+        }
+    }
+}

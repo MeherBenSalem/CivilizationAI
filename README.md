@@ -9,12 +9,12 @@ Villagers you can talk to. Stand near a villager, speak in normal chat, and they
 - **Multiple AI providers** — DeepSeek, NanoGPT subscription/PAYG, OpenAI, OpenRouter, Ollama, LM Studio and custom Chat Completions endpoints, with local fallback dialogue
 - **Spoken voice (optional)** — text chat by default; when [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) is installed, nearby players can hear the villager. Language follows the AI reply / your game language (no separate TTS locale setting)
 - **Privacy opt-in** — player consent before messages are sent to an AI provider
-- **MultiLoader** — Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), and 26.2 (Fabric/NeoForge)
+- **MultiLoader** — Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), 26.2 (Fabric/NeoForge), and 26.3 (Fabric/NeoForge)
 
 ## Requirements
 
-- Minecraft 1.20.1, 1.21.1 or 26.2, matching your jar
-- Java 17 (1.20.1), Java 21 (1.21.1) or Java 25 (26.2)
+- Minecraft 1.20.1, 1.21.1, 26.2 or 26.3, matching your jar
+- Java 17 (1.20.1), Java 21 (1.21.1) or Java 25 (26.2 / 26.3)
 - One of: Fabric Loader + [Fabric API](https://modrinth.com/mod/fabric-api), Forge, or NeoForge
 - Optional: a DeepSeek **API key** for live AI replies (not a downloadable jar)
 - Optional: [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) on the **server and clients** if you want villagers to speak out loud (soft dependency — without it the mod stays text-only and will not crash)
@@ -190,6 +190,7 @@ Release jars are collected into `all-jars/`. Each Minecraft workspace also has l
 | `1.21.1/` | 1.21.1 | Fabric, Forge, NeoForge |
 | `1.20.1/` | 1.20.1 | Fabric, Forge |
 | `26.2/` | 26.2 | Fabric, NeoForge |
+| `26.3/` | 26.3 | Fabric, NeoForge |
 
 ## Store listings
 

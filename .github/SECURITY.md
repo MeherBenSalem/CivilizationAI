@@ -7,6 +7,7 @@
 | `main` (1.21.1) | Yes |
 | `1.20.1` | Yes |
 | `26.2` | Best effort (beta Minecraft) |
+| `26.3` | Best effort (beta Minecraft) |
 
 ## Reporting a vulnerability
 
