@@ -99,13 +99,14 @@ jobs:
       - name: Build all workspaces
         if: ${{ steps.skip.outputs.already != 'true' }}
         env:
-          JAVA_HOME: ${{ steps.jdk25.outputs.path }}
+          # Root wrapper is Gradle 8.10 (max Java 23). Workspaces pick JAVA_HOME_17/21/25.
+          JAVA_HOME: ${{ steps.jdk21.outputs.path }}
           JAVA_HOME_17: ${{ steps.jdk17.outputs.path }}
           JAVA_HOME_21: ${{ steps.jdk21.outputs.path }}
           JAVA_HOME_25: ${{ steps.jdk25.outputs.path }}
         run: |
           chmod +x gradlew 1.20.1/gradlew 1.21.1/gradlew 26.2/gradlew 26.3/gradlew
-          ./gradlew buildAll --no-daemon
+          ./gradlew buildAll --no-daemon --stacktrace
 
       - name: Check nine release jars
         if: ${{ steps.skip.outputs.already != 'true' }}
