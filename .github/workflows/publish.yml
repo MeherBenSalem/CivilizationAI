@@ -105,8 +105,18 @@ jobs:
           JAVA_HOME_21: ${{ steps.jdk21.outputs.path }}
           JAVA_HOME_25: ${{ steps.jdk25.outputs.path }}
         run: |
+          set -euo pipefail
           chmod +x gradlew 1.20.1/gradlew 1.21.1/gradlew 26.2/gradlew 26.3/gradlew
-          ./gradlew buildAll --no-daemon --stacktrace
+          ok=0
+          for attempt in 1 2 3; do
+            if ./gradlew buildAll --no-daemon --stacktrace; then
+              ok=1
+              break
+            fi
+            echo "buildAll failed (attempt ${attempt}/3); retrying in 30s"
+            sleep 30
+          done
+          test "$ok" -eq 1
 
       - name: Check nine release jars
         if: ${{ steps.skip.outputs.already != 'true' }}
