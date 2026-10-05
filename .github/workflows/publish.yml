@@ -1,0 +1,173 @@
+# Dual-publish Smart Villagers AI to Modrinth + CurseForge.
+#
+# Secrets:
+#   MODRINTH_TOKEN
+#   CURSEFORGE_TOKEN
+#   CURSEFORGE_API_KEY
+#
+# Usage:
+#   workflow_dispatch with version=1.1.6 (dry_run=false)
+#   or git tag v1.1.6 && git push --tags
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version (without v) when not tagging
+        required: false
+      dry_run:
+        description: Skip uploads if true
+        required: false
+        default: "false"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
+
+      - name: Skip duplicate tag rebuild
+        id: skip
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets | length' 2>/dev/null | grep -Eq '^[1-9]'; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "Release ${GITHUB_REF_NAME} already has assets; skipping rebuild."
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve version
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.version }}" ]]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Provide a v*.*.* tag or workflow_dispatch version" >&2
+            exit 1
+          fi
+
+      - name: Check VERSION file
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          file_version=$(tr -d '[:space:]' < VERSION)
+          if [[ "$file_version" != "$VERSION" ]]; then
+            echo "VERSION file is $file_version, requested $VERSION" >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        id: jdk17
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-java@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        id: jdk21
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-java@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        id: jdk25
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+
+      - name: Build all workspaces
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        env:
+          JAVA_HOME: ${{ steps.jdk25.outputs.path }}
+          JAVA_HOME_17: ${{ steps.jdk17.outputs.path }}
+          JAVA_HOME_21: ${{ steps.jdk21.outputs.path }}
+          JAVA_HOME_25: ${{ steps.jdk25.outputs.path }}
+        run: |
+          chmod +x gradlew 1.20.1/gradlew 1.21.1/gradlew 26.2/gradlew 26.3/gradlew
+          ./gradlew buildAll --no-daemon
+
+      - name: Check nine release jars
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          test -d all-jars
+          mapfile -t JARS < <(find all-jars -maxdepth 1 -type f -name "*.jar" \
+            ! -name "*-sources.jar" ! -name "*-javadoc.jar" ! -name "*-dev.jar" \
+            ! -name "*-shadow.jar" ! -name "*-dev-shadow.jar" | sort)
+          expected=9
+          if [[ ${#JARS[@]} -ne $expected ]]; then
+            echo "Expected $expected jars, found ${#JARS[@]}" >&2
+            printf '%s\n' "${JARS[@]}" >&2
+            exit 1
+          fi
+          printf '%s\n' "${JARS[@]}"
+
+      - uses: actions/setup-node@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        with:
+          node-version: "20"
+
+      - name: Upload Modrinth + CurseForge
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: |
+          args=(scripts/upload_platforms.mjs --ci)
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          node "${args[@]}"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.skip.outputs.already != 'true' }}
+        with:
+          name: smart-villagers-ai-${{ steps.ver.outputs.version }}
+          path: |
+            all-jars/*.jar
+            all-jars/publish-results-*.json
+          if-no-files-found: error
+
+      - name: GitHub release
+        if: ${{ steps.skip.outputs.already != 'true' && github.event_name == 'workflow_dispatch' && inputs.dry_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA=$(git rev-parse HEAD)
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "GitHub release v${VERSION} already exists"
+            gh release upload "v${VERSION}" all-jars/*.jar --clobber
+            exit 0
+          fi
+          mapfile -t JARS < <(find all-jars -maxdepth 1 -type f -name "*.jar" \
+            ! -name "*-sources.jar" ! -name "*-javadoc.jar" | sort)
+          gh release create "v${VERSION}" "${JARS[@]}" \
+            --title "Smart Villagers AI ${VERSION}" \
+            --notes-file PATCH_NOTES.md \
+            --target "$HEAD_SHA"
