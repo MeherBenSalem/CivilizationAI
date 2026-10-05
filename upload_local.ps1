@@ -28,7 +28,7 @@ if (-not (Test-Path $notes)) {
 # Smart Villagers AI 1.0.0
 
 Initial public MultiLoader release: proximity chat, DeepSeek AI, editable personas.
-Supports Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), 26.2 (Fabric/NeoForge).
+Supports Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), 26.2 (Fabric/NeoForge), 26.3 (Fabric/NeoForge).
 "@ | Set-Content -Path $notes -Encoding UTF8
 }
 

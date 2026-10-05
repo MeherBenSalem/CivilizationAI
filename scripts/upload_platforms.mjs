@@ -175,9 +175,9 @@ async function main() {
   if (!jars.length) throw new Error(`No ${VERSION} smartvillagers jars in ${DIST}`);
 
   const expected = ["1.20.1-fabric", "1.20.1-forge", "1.21.1-fabric", "1.21.1-forge",
-    "1.21.1-neoforge", "26.2-fabric", "26.2-neoforge"].sort();
+    "1.21.1-neoforge", "26.2-fabric", "26.2-neoforge", "26.3-fabric", "26.3-neoforge"].sort();
   if (JSON.stringify(jars.map(j => `${j.game}-${j.loader}`).sort()) !== JSON.stringify(expected)) {
-    throw new Error("Release must contain exactly the seven supported Minecraft/loader jars");
+    throw new Error("Release must contain exactly the nine supported Minecraft/loader jars");
   }
   const reportPath = path.join(DIST, `client-verification-${VERSION}.json`);
   if (!fs.existsSync(reportPath)) throw new Error("Run scripts/smoke-client.py before publishing");

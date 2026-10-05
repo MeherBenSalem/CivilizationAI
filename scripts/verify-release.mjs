@@ -19,8 +19,8 @@ async function json(url, headers = {}) {
   return response.json();
 }
 
-if (results.length !== 14 || new Set(results.map(row => `${row.platform}:${row.jar}`)).size !== 14) {
-  throw new Error("Expected seven uploaded jars on each platform");
+if (results.length !== 18 || new Set(results.map(row => `${row.platform}:${row.jar}`)).size !== 18) {
+  throw new Error("Expected nine uploaded jars on each platform");
 }
 const checks = [];
 for (const row of results) {

@@ -47,7 +47,9 @@ JAVA = {
     "25": Path(os.environ.get("JAVA_HOME_25", "C:/Program Files/Eclipse Adoptium/jdk-25.0.4.101-hotspot")),
 }
 MATRIX = [(mc, loader) for mc, loaders in (("1.20.1", ("fabric", "forge")),
-          ("1.21.1", ("fabric", "forge", "neoforge")), ("26.2", ("fabric", "neoforge"))) for loader in loaders]
+          ("1.21.1", ("fabric", "forge", "neoforge")),
+          ("26.2", ("fabric", "neoforge")),
+          ("26.3", ("fabric", "neoforge"))) for loader in loaders]
 
 
 def write_report(version):
@@ -188,7 +190,7 @@ def run_case(workspace, loader, args, agent, releases, dependencies):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", required=True)
-    parser.add_argument("--case", action="append", help="e.g. 26.3-fabric; default is all seven jars")
+    parser.add_argument("--case", action="append", help="e.g. 26.3-fabric; default is all nine jars")
     parser.add_argument("--published", action="store_true", help="test public baseline instead of local artifacts")
     parser.add_argument("--inspect", action="store_true", help="leave one --case client open for manual inspection")
     parser.add_argument("--timeout", type=int, default=180)
