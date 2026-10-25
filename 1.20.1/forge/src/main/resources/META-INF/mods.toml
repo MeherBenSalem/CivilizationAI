@@ -11,6 +11,8 @@ displayURL="https://github.com/MeherBenSalem/CivilizationAI"
 credits = "${credits}"
 authors = "${mod_author}"
 description = '''${description}'''
+# logoFile for older loader versions, iconFile (the logo is square) for current NeoForge
+logoFile = "logo.png"
 
 [[mixins]]
 config = "${mod_id}.mixins.json"

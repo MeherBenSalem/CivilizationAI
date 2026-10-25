@@ -4,7 +4,7 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 base {
-    archivesName = "${mod_name}-forge-${minecraft_version}"
+    archivesName = "${mod_id}-forge-${minecraft_version}"
 }
 mixin {
     config("${mod_id}.mixins.json")
@@ -36,7 +36,7 @@ minecraft {
         client {
             workingDirectory file('runs/client')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
+            taskName 'runClient'
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -47,9 +47,23 @@ minecraft {
         server {
             workingDirectory file('runs/server')
             ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
+            taskName 'runServer'
             mods {
                 modServerRun {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        // QA client: joins a server on localhost:25565 straight away (see tools/qa/).
+        qaClient {
+            parent runs.client
+            workingDirectory file('runs/client')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'runQaClient'
+            args '--quickPlayMultiplayer', 'localhost:25565', '--username', 'Builder', '--width', '1920', '--height', '1080'
+            mods {
+                modQaClientRun {
                     source sourceSets.main
                 }
             }

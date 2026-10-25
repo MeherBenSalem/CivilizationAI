@@ -21,6 +21,7 @@ neoForge {
         }
         client {
             client()
+            gameDirectory = this.mkdir(this.file('runs/client'))
         }
         data {
             data()
@@ -32,6 +33,13 @@ neoForge {
         }
         server {
             server()
+            gameDirectory = this.mkdir(this.file('runs/server'))
+        }
+        // QA client: joins a server on localhost:25565 straight away (see tools/qa/).
+        qaClient {
+            client()
+            gameDirectory = this.mkdir(this.file('runs/client'))
+            programArguments.addAll '--quickPlayMultiplayer', 'localhost:25565', '--username', 'Builder', '--width', '1920', '--height', '1080'
         }
     }
     mods {

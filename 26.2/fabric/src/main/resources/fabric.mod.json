@@ -13,6 +13,7 @@
         "issues": "https://github.com/MeherBenSalem/CivilizationAI/issues"
     },
     "license": "${license}",
+    "icon": "logo.png",
     "environment": "*",
     "entrypoints": {
         "main": [
