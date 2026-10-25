@@ -1,5 +1,6 @@
 package tn.naizo.smartvillagers.schedule;
 
+import tn.naizo.smartvillagers.platform.Mc;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -42,8 +43,9 @@ public final class PendingResponseQueue {
         private final ReplyDelayQueue.Task task;
 
         public PendingResponse(UUID playerId, UUID villagerId, String playerMessage, String replyText,
-                               int remainingTicks, java.util.function.Consumer<String> ignored) {
-            this.task = new ReplyDelayQueue.Task(playerId, villagerId, playerMessage, replyText, remainingTicks);
+                               int remainingTicks, Runnable afterDelivery) {
+            this.task = new ReplyDelayQueue.Task(playerId, villagerId, playerMessage, replyText, remainingTicks,
+                    afterDelivery);
         }
 
         static void deliver(ReplyDelayQueue.Task task, MinecraftServer server, ResponseDispatcher dispatcher,
@@ -62,11 +64,14 @@ public final class PendingResponseQueue {
             }
 
             VillagerPersona persona = VillagerPersona.from(villager);
-            ServerLevel level = player.level();
+            ServerLevel level = Mc.level(player);
             VoiceDelivery voice = dispatcher.dispatch(level, player, villager, persona, task.replyText);
             VillagerAiData.get(villager).memory().remember(task.playerId, task.playerMessage, task.replyText);
             sessions.touch(task.playerId);
             locks.unlock(task.villagerId, task.playerId);
+            if (task.afterDelivery != null) {
+                task.afterDelivery.run();
+            }
         }
 
         private static Villager findVillager(MinecraftServer server, UUID id) {

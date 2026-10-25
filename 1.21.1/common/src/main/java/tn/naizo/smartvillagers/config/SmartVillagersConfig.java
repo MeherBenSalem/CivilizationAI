@@ -42,7 +42,8 @@ public final class SmartVillagersConfig {
                 config.save();
             } else {
                 config.load();
-                boolean migrated = ensureVoiceKeys(config) | ensureAiKey(config) | ensureProviderKeys(config);
+                boolean migrated = ensureVoiceKeys(config) | ensureAiKey(config) | ensureProviderKeys(config)
+                        | ensureVillageKeys(config);
                 if (migrated) {
                     config.save();
                 }
@@ -85,6 +86,40 @@ public final class SmartVillagersConfig {
         ensureProviderKeys(config);
         applyAiKeyComment(config);
         applyVoiceDefaults(config);
+        ensureVillageKeys(config);
+    }
+
+    /**
+     * Adds the 2.0 settings (speech bubbles, chat etiquette, village requests) to a config that predates them.
+     * @return true if the file should be saved
+     */
+    static boolean ensureVillageKeys(Config config) {
+        Snapshot defaults = Snapshot.defaults();
+        boolean changed = false;
+        changed |= setIfMissing(config, "display.speechBubbles", defaults.speechBubbles());
+        changed |= setIfMissing(config, "proximity.ignorePlayerToPlayerChat", defaults.ignorePlayerToPlayerChat());
+        changed |= setIfMissing(config, "requests.enabled", defaults.requestsEnabled());
+        changed |= setIfMissing(config, "requests.maxActive", defaults.maxActiveRequests());
+        changed |= setIfMissing(config, "requests.cooldownMinutes", defaults.requestCooldownMinutes());
+        changed |= setIfMissing(config, "requests.reputationReward", defaults.requestReputation());
+        if (config instanceof com.electronwill.nightconfig.core.CommentedConfig commented) {
+            commented.setComment("display.speechBubbles", "Show replies in a speech bubble above the villager (a vanilla text display; no client mod needed).");
+            commented.setComment("proximity.ignorePlayerToPlayerChat", "Villagers stay quiet when a message names another online player (and not the villager).");
+            commented.setComment("requests", "Village requests: ask a villager for work (\"any work for me?\"), accept, finish it, get paid.");
+            commented.setComment("requests.enabled", "Villagers offer requests when asked for work.");
+            commented.setComment("requests.maxActive", "How many accepted requests a player can have open at once.");
+            commented.setComment("requests.cooldownMinutes", "Minutes of game time before the same villager offers that player another request (20 = one Minecraft day).");
+            commented.setComment("requests.reputationReward", "Minor positive gossip added to the villager for a finished request (vanilla reputation: better prices, shared with neighbours). 0 disables.");
+        }
+        return changed;
+    }
+
+    private static boolean setIfMissing(Config config, String path, Object value) {
+        if (config.contains(path)) {
+            return false;
+        }
+        config.set(path, value);
+        return true;
     }
 
     private static void applyVoiceDefaults(Config config) {
@@ -210,7 +245,13 @@ public final class SmartVillagersConfig {
                 bool(config, "voice.enabled", true),
                 clampVolume(number(config, "voice.volume", 1.0)),
                 Math.max(0.0, number(config, "voice.range", 0.0)),
-                bool(config, "voice.fallbackToText", true)
+                bool(config, "voice.fallbackToText", true),
+                bool(config, "display.speechBubbles", true),
+                bool(config, "proximity.ignorePlayerToPlayerChat", true),
+                bool(config, "requests.enabled", true),
+                Math.max(1, Math.min(10, intNumber(config, "requests.maxActive", 3))),
+                Math.max(0, intNumber(config, "requests.cooldownMinutes", 10)),
+                Math.max(0, Math.min(25, intNumber(config, "requests.reputationReward", 10)))
         );
     }
 
@@ -297,7 +338,13 @@ public final class SmartVillagersConfig {
             boolean voiceEnabled,
             double voiceVolume,
             double voiceRange,
-            boolean voiceFallbackToText
+            boolean voiceFallbackToText,
+            boolean speechBubbles,
+            boolean ignorePlayerToPlayerChat,
+            boolean requestsEnabled,
+            int maxActiveRequests,
+            int requestCooldownMinutes,
+            int requestReputation
     ) {
         public static Snapshot defaults() {
             return new Snapshot(
@@ -326,7 +373,13 @@ public final class SmartVillagersConfig {
                     true,
                     1.0,
                     0.0,
-                    true
+                    true,
+                    true,
+                    true,
+                    true,
+                    3,
+                    10,
+                    10
             );
         }
     }

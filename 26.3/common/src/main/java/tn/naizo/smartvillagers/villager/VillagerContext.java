@@ -8,9 +8,13 @@ public record VillagerContext(
         List<VillagerMemory.Exchange> recentHistory,
         int rapport,
         String professionKey,
-        String playerLanguage
+        String playerLanguage,
+        String relationship,
+        String requestFact
 ) {
     public VillagerContext {
         playerLanguage = playerLanguage == null ? "" : playerLanguage;
+        relationship = relationship == null ? "" : relationship;
+        requestFact = requestFact == null ? "" : requestFact;
     }
 }

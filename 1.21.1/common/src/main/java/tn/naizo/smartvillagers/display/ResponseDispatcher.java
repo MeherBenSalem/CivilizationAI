@@ -1,5 +1,6 @@
 package tn.naizo.smartvillagers.display;
 
+import tn.naizo.smartvillagers.platform.Mc;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,6 +14,7 @@ import tn.naizo.smartvillagers.voice.VoiceOutput;
 
 public final class ResponseDispatcher {
     public VoiceDelivery dispatch(ServerLevel level, ServerPlayer player, Villager villager, VillagerPersona persona, String text) {
+        SpeechBubbles.say(villager, persona.displayName(), text);
         VoiceDelivery voice = VoiceOutput.speak(villager, text, VillagerContextBuilder.playerLanguage(player));
         if (!voice.showText()) {
             return voice;
@@ -22,7 +24,7 @@ public final class ResponseDispatcher {
         SmartVillagersConfig.Snapshot config = SmartVillagersConfig.get();
 
         if (config.displayMode() == DisplayMode.ACTION_BAR) {
-            player.displayClientMessage(message, true);
+            Mc.actionBar(player, message);
             return voice;
         }
 
@@ -44,7 +46,7 @@ public final class ResponseDispatcher {
     }
 
     private static String capitalize(String value) {
-        if (value == null || value.isEmpty()) {
+        if (value == null || value.isEmpty() || value.equals("none")) {
             return "Villager";
         }
         if (value.length() == 1) {

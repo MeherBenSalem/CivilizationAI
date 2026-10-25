@@ -8,7 +8,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.List;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
 import tn.naizo.smartvillagers.Constants;
+import tn.naizo.smartvillagers.SmartVillagers;
+import tn.naizo.smartvillagers.display.SpeechBubbles;
+import tn.naizo.smartvillagers.village.VillagerTies;
 import tn.naizo.smartvillagers.villager.PersonaOverride;
 import tn.naizo.smartvillagers.villager.VillagerAiData;
 import tn.naizo.smartvillagers.villager.VillagerAiDataHolder;
@@ -36,6 +43,9 @@ public class VillagerAiDataMixin implements VillagerAiDataHolder {
         if (!smartVillagers$aiData.personaOverride().isEmpty()) {
             smartVillagers$aiData.personaOverride().write(root.child("PersonaOverride"));
         }
+        if (!smartVillagers$aiData.ties().isEmpty()) {
+            root.putString("Village", smartVillagers$aiData.ties().encode());
+        }
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
@@ -46,6 +56,27 @@ public class VillagerAiDataMixin implements VillagerAiDataHolder {
                     persona -> smartVillagers$aiData.setPersonaOverride(PersonaOverride.read(persona)),
                     () -> smartVillagers$aiData.setPersonaOverride(PersonaOverride.EMPTY)
             );
+            smartVillagers$aiData.setTies(VillagerTies.decode(root.getStringOr("Village", "")));
         });
+    }
+
+    @Inject(method = "die", at = @At("HEAD"))
+    private void smartVillagers$forgetRequests(DamageSource source, CallbackInfo ci) {
+        Villager self = (Villager) (Object) this;
+        if (!self.level().isClientSide() && SmartVillagers.conversations() != null) {
+            SmartVillagers.conversations().requests().onVillagerGone(self);
+        }
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void smartVillagers$dropOrphanBubbles(CallbackInfo ci) {
+        Villager self = (Villager) (Object) this;
+        if (!self.level().isClientSide() && self.isVehicle()) {
+            for (Entity passenger : List.copyOf(self.getPassengers())) {
+                if (SpeechBubbles.isOrphan(passenger)) {
+                    passenger.discard();
+                }
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 package tn.naizo.smartvillagers.command;
 
+import tn.naizo.smartvillagers.platform.Mc;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,6 +17,8 @@ import tn.naizo.smartvillagers.chat.ConversationService;
 import tn.naizo.smartvillagers.config.ApiCredentials;
 import tn.naizo.smartvillagers.config.SmartVillagersConfig;
 import tn.naizo.smartvillagers.platform.Services;
+import tn.naizo.smartvillagers.village.RequestEvent;
+import tn.naizo.smartvillagers.village.RequestKind;
 import tn.naizo.smartvillagers.villager.PersonaOverride;
 import tn.naizo.smartvillagers.villager.VillagerAiData;
 import tn.naizo.smartvillagers.villager.VillagerAiDataHolder;
@@ -34,27 +37,45 @@ public final class VillagerAiCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, ConversationService conversations) {
         dispatcher.register(Commands.literal("villagerai")
                 .then(Commands.literal("reload")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Mc::isOp)
                         .executes(ctx -> reload(ctx.getSource())))
                 .then(Commands.literal("status")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Mc::isOp)
                         .executes(ctx -> status(ctx.getSource(), conversations)))
                 .then(Commands.literal("debug")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Mc::isOp)
                         .executes(ctx -> debug(ctx.getSource(), conversations)))
                 .then(Commands.literal("test")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Mc::isOp)
                         .executes(ctx -> testNearest(ctx.getSource(), conversations))
                         .then(Commands.argument("target", EntityArgument.entity())
                                 .executes(ctx -> testTarget(ctx.getSource(), conversations,
                                         EntityArgument.getEntity(ctx, "target")))))
                 .then(Commands.literal("memory")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Mc::isOp)
                         .then(Commands.literal("clear")
-                                .executes(ctx -> clearLookedMemory(ctx.getSource()))
+                                .executes(ctx -> clearLookedMemory(ctx.getSource(), conversations))
                                 .then(Commands.argument("target", EntityArgument.entity())
-                                        .executes(ctx -> clearTargetMemory(ctx.getSource(),
+                                        .executes(ctx -> clearTargetMemory(ctx.getSource(), conversations,
                                                 EntityArgument.getEntity(ctx, "target"))))))
+                .then(Commands.literal("requests")
+                        .executes(ctx -> listRequests(ctx.getSource(), conversations)))
+                .then(Commands.literal("request")
+                        .then(Commands.literal("accept")
+                                .executes(ctx -> answerOffer(ctx.getSource(), conversations, true)))
+                        .then(Commands.literal("decline")
+                                .executes(ctx -> answerOffer(ctx.getSource(), conversations, false)))
+                        .then(Commands.literal("assign")
+                                .requires(Mc::isOp)
+                                .then(Commands.argument("target", EntityArgument.entity())
+                                        .executes(ctx -> assign(ctx.getSource(), conversations,
+                                                EntityArgument.getEntity(ctx, "target"), null))
+                                        .then(Commands.literal("fetch")
+                                                .executes(ctx -> assign(ctx.getSource(), conversations,
+                                                        EntityArgument.getEntity(ctx, "target"), RequestKind.FETCH)))
+                                        .then(Commands.literal("slay")
+                                                .executes(ctx -> assign(ctx.getSource(), conversations,
+                                                        EntityArgument.getEntity(ctx, "target"), RequestKind.SLAY))))))
                 .then(Commands.literal("consent")
                         .then(Commands.literal("accept")
                                 .executes(ctx -> setConsent(ctx.getSource(), conversations, true)))
@@ -63,9 +84,9 @@ public final class VillagerAiCommands {
                 .then(Commands.literal("persona")
                         .requires(VillagerAiCommands::canEditPersona)
                         .then(Commands.literal("get")
-                                .executes(ctx -> personaGet(ctx.getSource(), null))
+                                .executes(ctx -> personaGet(ctx.getSource(), conversations, null))
                                 .then(Commands.argument("target", EntityArgument.entity())
-                                        .executes(ctx -> personaGet(ctx.getSource(),
+                                        .executes(ctx -> personaGet(ctx.getSource(), conversations,
                                                 EntityArgument.getEntity(ctx, "target")))))
                         .then(Commands.literal("set")
                                 .then(Commands.literal("name")
@@ -88,7 +109,7 @@ public final class VillagerAiCommands {
         if (SmartVillagersConfig.get().allowPlayersEditPersona()) {
             return true;
         }
-        return source.hasPermission(2);
+        return Mc.isOp(source);
     }
 
     private static int reload(CommandSourceStack source) {
@@ -106,6 +127,8 @@ public final class VillagerAiCommands {
         line(source, "Activation", config.activationMode().name());
         line(source, "Hearing / response", config.hearingRadius() + " / " + config.responseRadius());
         line(source, "Display", config.displayMode().name());
+        line(source, "Speech bubbles", config.speechBubbles() ? "on" : "off");
+        line(source, "Requests", config.requestsEnabled() ? "on" : "off");
         line(source, "Provider", conversations.provider().name()
                 + (conversations.provider().isConfigured() ? " (ready)" : " (not configured)"));
         line(source, "API key source", ApiCredentials.source());
@@ -190,9 +213,10 @@ public final class VillagerAiCommands {
         return 1;
     }
 
-    private static int clearLookedMemory(CommandSourceStack source) {
+    private static int clearLookedMemory(CommandSourceStack source, ConversationService conversations) {
         return resolveVillager(source, null).map(villager -> {
             VillagerAiData.get(villager).memory().clearAll();
+            conversations.requests().forget(villager);
             source.sendSuccess(() -> Component.literal("Cleared memory for " + VillagerPersona.from(villager).displayName()), true);
             return 1;
         }).orElseGet(() -> {
@@ -201,13 +225,70 @@ public final class VillagerAiCommands {
         });
     }
 
-    private static int clearTargetMemory(CommandSourceStack source, Entity target) {
+    private static int clearTargetMemory(CommandSourceStack source, ConversationService conversations, Entity target) {
         if (!(target instanceof Villager villager)) {
             source.sendFailure(Component.literal("Target is not a villager."));
             return 0;
         }
         VillagerAiData.get(villager).memory().clearAll();
+        conversations.requests().forget(villager);
         source.sendSuccess(() -> Component.literal("Cleared memory for " + VillagerPersona.from(villager).displayName()), true);
+        return 1;
+    }
+
+    private static int listRequests(CommandSourceStack source, ConversationService conversations) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        var lines = conversations.requests().describeActive(player);
+        int favours = conversations.requests().ledger().favours(player.getUUID());
+        source.sendSuccess(() -> Component.literal("Village requests (" + favours + " finished)")
+                .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD), false);
+        if (lines.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("None open. Ask a villager: \"Any work for me?\"")
+                    .withStyle(ChatFormatting.GRAY), false);
+        }
+        lines.forEach(line -> source.sendSuccess(() -> line, false));
+        return lines.size();
+    }
+
+    private static int answerOffer(CommandSourceStack source, ConversationService conversations, boolean accept) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        Optional<Villager> villager = conversations.requests().lastOfferFrom(player);
+        if (villager.isEmpty()) {
+            source.sendFailure(Component.literal("No villager is waiting for your answer."));
+            return 0;
+        }
+        VillagerPersona persona = VillagerPersona.from(villager.get());
+        RequestEvent event = accept ? conversations.requests().accept(player, villager.get(), persona)
+                : conversations.requests().decline(player, villager.get());
+        if (event.isNone()) {
+            source.sendFailure(Component.literal("That offer is no longer open."));
+            return 0;
+        }
+        conversations.announce(player, villager.get(), event);
+        return 1;
+    }
+
+    private static int assign(CommandSourceStack source, ConversationService conversations, Entity target, RequestKind kind) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null || !(target instanceof Villager villager)) {
+            source.sendFailure(Component.literal("Run as a player, targeting a villager."));
+            return 0;
+        }
+        VillagerPersona persona = VillagerIdentity.applyVisibleIdentity(villager);
+        RequestEvent event = conversations.requests().offer(player, villager, persona, kind == null ? RequestKind.FETCH : kind);
+        if (event.isNone()) {
+            source.sendFailure(Component.literal("No request could be rolled."));
+            return 0;
+        }
+        conversations.announce(player, villager, event);
         return 1;
     }
 
@@ -225,7 +306,7 @@ public final class VillagerAiCommands {
         return 1;
     }
 
-    private static int personaGet(CommandSourceStack source, Entity target) {
+    private static int personaGet(CommandSourceStack source, ConversationService conversations, Entity target) {
         return resolveVillager(source, target).map(villager -> {
             VillagerPersona persona = VillagerPersona.from(villager);
             PersonaOverride override = VillagerAiData.get(villager).personaOverride();
@@ -235,6 +316,14 @@ public final class VillagerAiCommands {
             line(source, "Style", persona.speechStyle());
             line(source, "Backstory", persona.backstory());
             line(source, "Profession", persona.professionLabel());
+            ServerPlayer viewer = source.getPlayer();
+            if (viewer != null) {
+                line(source, "Standing", conversations.requests().standing(viewer, villager).name().toLowerCase()
+                        + " (reputation " + villager.getPlayerReputation(viewer) + ", favours "
+                        + conversations.requests().ledger().favours(viewer.getUUID()) + ")");
+                VillagerAiData.get(villager).ties().request(viewer.getUUID()).ifPresent(request ->
+                        line(source, "Request", request.describe() + (request.accepted() ? " (accepted)" : " (offered)")));
+            }
             line(source, "Overrides", override.isEmpty() ? "none" : override.toString());
             return 1;
         }).orElseGet(() -> {
@@ -295,7 +384,7 @@ public final class VillagerAiCommands {
             return Optional.empty();
         }
         AABB box = player.getBoundingBox().inflate(range);
-        return player.serverLevel().getEntitiesOfClass(Villager.class, box, Villager::isAlive).stream()
+        return Mc.level(player).getEntitiesOfClass(Villager.class, box, Villager::isAlive).stream()
                 .min(Comparator.comparingDouble(player::distanceTo));
     }
 

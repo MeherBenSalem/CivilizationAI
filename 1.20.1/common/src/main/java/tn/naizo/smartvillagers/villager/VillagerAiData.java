@@ -1,10 +1,21 @@
 package tn.naizo.smartvillagers.villager;
 
 import net.minecraft.world.entity.npc.Villager;
+import tn.naizo.smartvillagers.village.VillagerTies;
 
 public final class VillagerAiData {
     private VillagerMemory memory = new VillagerMemory();
     private PersonaOverride personaOverride = PersonaOverride.EMPTY;
+    private VillagerTies ties = new VillagerTies();
+
+    /** Requests, neighbourly news and request cooldowns per player. */
+    public VillagerTies ties() {
+        return ties;
+    }
+
+    public void setTies(VillagerTies ties) {
+        this.ties = ties != null ? ties : new VillagerTies();
+    }
 
     public VillagerMemory memory() {
         return memory;

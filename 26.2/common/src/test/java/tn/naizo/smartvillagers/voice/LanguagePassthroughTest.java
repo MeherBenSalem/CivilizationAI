@@ -53,6 +53,6 @@ class LanguagePassthroughTest {
                 PersonaOverride.EMPTY,
                 "minecraft:farmer"
         );
-        return new VillagerContext("Daylight.", persona, List.of(), 1, "minecraft:farmer", language);
+        return new VillagerContext("Daylight.", persona, List.of(), 1, "minecraft:farmer", language, "", "");
     }
 }

@@ -1,0 +1,29 @@
+{
+  "parent": "smartvillagers:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:writable_book"
+    },
+    "title": {
+      "translate": "advancements.smartvillagers.first_request.title",
+      "fallback": "A Favor for a Friend"
+    },
+    "description": {
+      "translate": "advancements.smartvillagers.first_request.description",
+      "fallback": "Ask a villager for work, accept their request and finish it"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

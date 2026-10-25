@@ -12,10 +12,12 @@ public final class PromptBuilder {
     public static String buildSystemPrompt(VillagerContext context) {
         VillagerPersona persona = context.persona();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are ").append(persona.displayName())
-                .append(", a Minecraft villager who works as a ")
-                .append(persona.professionLabel())
-                .append(". ");
+        prompt.append("You are ").append(persona.displayName());
+        if ("none".equals(persona.professionLabel())) {
+            prompt.append(", a Minecraft villager without a trade yet. ");
+        } else {
+            prompt.append(", a Minecraft villager who works as a ").append(persona.professionLabel()).append(". ");
+        }
         prompt.append("Trait: ").append(persona.trait()).append(". ");
         prompt.append("Speech style: ").append(persona.speechStyle()).append(". ");
         if (!persona.backstory().isBlank()) {
@@ -26,6 +28,9 @@ public final class PromptBuilder {
         prompt.append("and do not mention being an AI or language model. ");
         prompt.append(VoiceLanguage.systemPromptFragment(context.playerLanguage())).append(' ');
         prompt.append("Relationship rapport with this player: ").append(context.rapport()).append(". ");
+        if (!context.relationship().isBlank()) {
+            prompt.append(context.relationship()).append(' ');
+        }
 
         if (!context.recentHistory().isEmpty()) {
             prompt.append("Recent conversation:\n");
@@ -37,6 +42,10 @@ public final class PromptBuilder {
 
         if (!context.worldFacts().isBlank()) {
             prompt.append("World context: ").append(context.worldFacts());
+        }
+
+        if (!context.requestFact().isBlank()) {
+            prompt.append("\nRight now: ").append(context.requestFact());
         }
 
         return prompt.toString().trim();

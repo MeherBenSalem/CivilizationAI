@@ -1,5 +1,6 @@
 package tn.naizo.smartvillagers.chat;
 
+import tn.naizo.smartvillagers.platform.Mc;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.phys.AABB;
@@ -22,7 +23,7 @@ public final class VillagerSelector {
                                                          ConversationSessionManager sessions) {
         double radius = SmartVillagersConfig.get().hearingRadius();
         AABB box = player.getBoundingBox().inflate(radius);
-        List<Villager> villagers = player.level().getEntitiesOfClass(Villager.class, box, Villager::isAlive);
+        List<Villager> villagers = Mc.level(player).getEntitiesOfClass(Villager.class, box, Villager::isAlive);
 
         List<VillagerCandidate> candidates = new ArrayList<>();
         for (Villager villager : villagers) {
@@ -45,9 +46,14 @@ public final class VillagerSelector {
     }
 
     public static boolean isLookingAt(ServerPlayer player, Villager villager) {
+        return lookAlignment(player, villager) > 0.80D;
+    }
+
+    /** 1 when the crosshair is on the villager's eyes, falling towards 0.8 at the edge of the look cone. */
+    static double lookAlignment(ServerPlayer player, Villager villager) {
         Vec3 look = player.getLookAngle().normalize();
         Vec3 toVillager = villager.getEyePosition().subtract(player.getEyePosition()).normalize();
-        return look.dot(toVillager) > 0.80D;
+        return look.dot(toVillager);
     }
 
     public static boolean isAddressing(ServerPlayer player, Villager villager, double distance) {
@@ -58,8 +64,12 @@ public final class VillagerSelector {
                                 MessageSignals signals, double distance, ConversationSessionManager sessions) {
         double score = Math.max(0.0, SmartVillagersConfig.get().hearingRadius() - distance);
 
-        if (isLookingAt(player, villager)) {
-            score += 6.0;
+        // Looking at a villager outweighs the previous conversation partner standing a little closer, and the one
+        // under the crosshair beats a neighbour at the edge of the view.
+        double alignment = lookAlignment(player, villager);
+        if (alignment > 0.80D) {
+            double aim = (alignment - 0.80D) / 0.20D;
+            score += 4.0 + 16.0 * aim * aim;
         }
 
         if (signals.nameMention() && persona.displayName() != null) {
@@ -70,7 +80,7 @@ public final class VillagerSelector {
 
         UUID sessionVillager = sessions.activeVillager(player.getUUID()).orElse(null);
         if (sessionVillager != null && sessionVillager.equals(villager.getUUID())) {
-            score += 5.0;
+            score += 4.0;
         }
 
         return score;

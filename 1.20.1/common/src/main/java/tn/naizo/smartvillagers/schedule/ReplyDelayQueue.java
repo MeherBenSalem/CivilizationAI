@@ -50,9 +50,17 @@ public final class ReplyDelayQueue {
         public final UUID villagerId;
         public final String playerMessage;
         public final String replyText;
+        /** Runs on the server thread after the reply is shown (the request card, for example). May be null. */
+        public final Runnable afterDelivery;
         int remainingTicks;
 
         public Task(UUID playerId, UUID villagerId, String playerMessage, String replyText, int remainingTicks) {
+            this(playerId, villagerId, playerMessage, replyText, remainingTicks, null);
+        }
+
+        public Task(UUID playerId, UUID villagerId, String playerMessage, String replyText, int remainingTicks,
+                    Runnable afterDelivery) {
+            this.afterDelivery = afterDelivery;
             this.playerId = playerId;
             this.villagerId = villagerId;
             this.playerMessage = playerMessage;

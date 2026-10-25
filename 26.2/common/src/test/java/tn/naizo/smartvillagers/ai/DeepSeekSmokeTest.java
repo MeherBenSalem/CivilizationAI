@@ -42,7 +42,9 @@ class DeepSeekSmokeTest {
                 List.of(),
                 1,
                 "minecraft:farmer",
-                "en_us"
+                "en_us",
+                "",
+                ""
         );
 
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider();
