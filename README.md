@@ -1,143 +1,117 @@
 # Smart Villagers AI
 
-Villagers you can talk to. Stand near a villager, speak in normal chat, and they answer — with optional DeepSeek AI, optional spoken voice via Simple Voice Chat, and rich, editable personalities.
+![Smart Villagers AI 2.0](marketing/images/banner.png)
+
+Villagers you can talk to, who remember you and ask for your help. Stand near a villager and chat normally: it
+answers in a speech bubble above its head, in character, with an AI provider of your choice (cloud, local model or
+any OpenAI-compatible endpoint) or with built-in dialogue when there is none.
+
+**2.0 "The Village Square Update"** turns conversation into gameplay: village requests with real rewards, vanilla
+reputation and gossip, speech bubbles, and Minecraft 26.1.2. See the [2.0.0 notes](patchnotes/2.0.0.md) and the
+[design notes](docs/DESIGN-2.0.md).
+
+## Which jar do I download?
+
+Jar names are `smartvillagers-{loader}-{minecraft}-{modVersion}.jar`. Match **both** the Minecraft version and the
+loader. Install it on the server, or in your game for single player.
+
+| Minecraft | Java | Fabric jar (needs Fabric API) | Forge jar | NeoForge jar |
+|-----------|------|-------------------------------|-----------|--------------|
+| 1.20.1 | 17+ | `smartvillagers-fabric-1.20.1-2.0.0.jar` | `smartvillagers-forge-1.20.1-2.0.0.jar` (Forge 47) | — |
+| 1.21.1 | 21+ | `smartvillagers-fabric-1.21.1-2.0.0.jar` | `smartvillagers-forge-1.21.1-2.0.0.jar` (Forge 52) | `smartvillagers-neoforge-1.21.1-2.0.0.jar` |
+| 26.1.2 | 25+ | `smartvillagers-fabric-26.1.2-2.0.0.jar` | — | `smartvillagers-neoforge-26.1.2-2.0.0.jar` |
+| 26.2 | 25+ | `smartvillagers-fabric-26.2-2.0.0.jar` | — | `smartvillagers-neoforge-26.2-2.0.0.jar` (NeoForge 26.2.0.93 or newer) |
+| 26.3 | 25+ | `smartvillagers-fabric-26.3-2.0.0.jar` | — | `smartvillagers-neoforge-26.3-2.0.0.jar` (NeoForge 26.3.0.97 or newer) |
+
+Optional on every build: [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) (server and clients) to
+hear villagers speak.
 
 ## Features
 
-- **Proximity chat** — no chat commands needed to talk; activation is smart (look-at, name, greeting, nearby)
-- **Personalities** — deterministic per-villager personas, plus player-editable overrides
-- **Multiple AI providers** — DeepSeek, NanoGPT subscription/PAYG, OpenAI, OpenRouter, Ollama, LM Studio and custom Chat Completions endpoints, with local fallback dialogue
-- **Spoken voice (optional)** — text chat by default; when [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) is installed, nearby players can hear the villager. Language follows the AI reply / your game language (no separate TTS locale setting)
-- **Privacy opt-in** — player consent before messages are sent to an AI provider
-- **MultiLoader** — Minecraft 1.20.1 (Fabric/Forge), 1.21.1 (Fabric/Forge/NeoForge), 26.2 (Fabric/NeoForge), and 26.3 (Fabric/NeoForge)
+- **Proximity chat**: no commands needed. A villager answers when you look at it, say its name, greet it, ask a
+  question or stand close. Messages that name another online player are left alone.
+- **Speech bubbles**: the reply floats above the villager who said it ("..." while the AI is thinking). Built from a
+  vanilla text display that rides the villager, so everyone nearby sees it.
+- **Village requests**: ask "any work for me?" (or "need help?", "¿tienes trabajo?", "as-tu une quête ?"...). Each of
+  the 13 professions wants its own things, and about a third of requests are monster hunts. Accept by saying yes or
+  clicking [Accept], then come back when it's done: emeralds, XP, vanilla positive gossip (better prices) and a
+  favour in the world's ledger.
+- **Reputation and gossip**: villagers read vanilla reputation. Hurt one and it will not give you work (and, as in
+  vanilla, its gossip about you spreads to its neighbours). Neighbours within 48 blocks hear about a finished request
+  and bring it up. Ten favours make you a hero to every villager in that world.
+- **Advancements**: Smart Villagers (talk to a villager), A Favor for a Friend (finish a request), Hero of the Village
+  Square (finish ten).
+- **Personalities**: every villager gets a stable name, trait, speech style and backstory, shown as a name tag;
+  operators (or everyone, if allowed) can edit them.
+- **Memory**: each villager remembers its last 8 exchanges with each player.
+- **World awareness** (AI prompt): biome, time, weather, raids, nearby monsters, the player's held item and health,
+  the villager's level, the player's standing, favours, news from neighbours and any open request.
+- **AI providers**: presets for DeepSeek, NanoGPT (pay-as-you-go and subscription), OpenAI, OpenRouter, Ollama and
+  LM Studio, plus any OpenAI-compatible endpoint. See the [provider guide](docs/ai-providers.md).
+- **Works without AI**: requests, bubbles, reputation and gossip all work with the built-in dialogue.
+- **Privacy**: players opt in before their chat is sent to an AI provider; keys and prompts never go to the logs.
+- **Spoken replies (optional)** through Simple Voice Chat.
 
-## Requirements
+The AI only words a villager's reply. Offers, progress and rewards are decided by the mod and the AI is told what
+happened, so a model cannot be talked into handing out emeralds.
 
-- Minecraft 1.20.1, 1.21.1, 26.2 or 26.3, matching your jar
-- Java 17 (1.20.1), Java 21 (1.21.1) or Java 25 (26.2 / 26.3)
-- One of: Fabric Loader + [Fabric API](https://modrinth.com/mod/fabric-api), Forge, or NeoForge
-- Optional: a DeepSeek **API key** for live AI replies (not a downloadable jar)
-- Optional: [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) on the **server and clients** if you want villagers to speak out loud (soft dependency — without it the mod stays text-only and will not crash)
+## Village requests
 
-There are two different “APIs” people mix up:
+| Step | What to do | What happens |
+|------|------------|--------------|
+| Ask | "Any work for me?" to a villager with a trade | It offers a request: bring items, or defeat mobs. A card shows the terms with [Accept] and [Decline]. |
+| Accept | Say "yes" (or "sure", "ok", "deal"...) or click [Accept] | The request is yours. `/villagerai requests` lists your open ones with progress. |
+| Do it | Gather the items, or defeat the mobs (vanilla kill statistics since you accepted count) | Ask "how many?" for progress. |
+| Finish | Talk to the villager again with everything | Items taken, emeralds and XP paid, positive gossip added, neighbours hear about it. |
 
-| What | Is it a download? | Where |
-|------|-------------------|-------|
-| **Fabric API** (Fabric builds only) | Yes — a separate Minecraft mod | [Modrinth](https://modrinth.com/mod/fabric-api) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/fabric-api). Put it in `mods/` next to this mod. |
-| **DeepSeek API** (live villager AI) | No. You create a key in DeepSeek’s web console. | Official docs: [Your First API Call](https://api-docs.deepseek.com/). Create a key at [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys). |
+Limits (all in `[requests]`): 3 open requests per player, 10 minutes of game time before the same villager offers
+you another, offers withdrawn after 2 minutes, no requests from nitwits, unemployed villagers, or villagers who
+dislike you (vanilla reputation -30 or lower).
 
-Forge and NeoForge do **not** need Fabric API.
+## Setup
 
-## Multiple AI providers
+1. Install the loader (and Fabric API for Fabric) and drop the matching jar into `mods/`.
+2. Start once: the mod writes `config/smartvillagers/config.toml`.
+3. Optional: choose an AI provider and add a key (or point it at a local model), then `/villagerai reload`.
+4. Walk up to a villager and chat. Players are asked to accept AI consent once (`/villagerai consent accept`).
 
-For NanoGPT subscriptions, other hosted providers and local models, see the [AI provider setup guide](docs/ai-providers.md). Version 1.1.5 adds provider presets, a custom endpoint mode and token compatibility controls. Choose a NanoGPT API key and an included model with `NANOGPT_SUBSCRIPTION`.
+Without any provider configured, villagers use the built-in dialogue. Keys are read, first match wins, from
+`SMARTVILLAGERS_API_KEY`, the selected provider's environment variable (for example `DEEPSEEK_API_KEY`),
+`config/smartvillagers/secrets.toml` (`apiKey = "..."`, never generated) and `config.toml` `ai.apiKey`.
 
-## DeepSeek API key (optional)
+## Configuration
 
-The DeepSeek API is **not** a file you download and drop into `mods/`. Create a key on DeepSeek’s platform, then give it to this mod.
-
-1. Open the official key page: [https://platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) (linked from [DeepSeek API Docs](https://api-docs.deepseek.com/)).
-2. Sign in, create a key, and copy it. Do not share it or commit it.
-3. Add the key using **one** of these (first match wins):
-
-```bash
-export DEEPSEEK_API_KEY=your_key_here
-```
-
-Or put it in the generated **`config/smartvillagers/config.toml`**:
-
-```toml
-[ai]
-apiKey = "your_key_here"
-```
-
-Or create **`config/smartvillagers/secrets.toml`** yourself (this file is **not** generated):
-
-```toml
-apiKey = "your_key_here"
-```
-
-For `DEEPSEEK`, priority: `SMARTVILLAGERS_API_KEY`, then `DEEPSEEK_API_KEY` environment variable, then `secrets.toml`, then `config.toml` `ai.apiKey`. On a dedicated server, set the env var on the process, or edit the **server’s** `config/smartvillagers/` files.
-
-Without a key, villagers still talk using local fallback dialogue.
-
-## Voice output (optional)
-
-Replies are **text by default**. Spoken audio is a soft extra:
-
-1. Install [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat) (same Minecraft version, matching Fabric / Forge / NeoForge) on the dedicated server **and** every client that should hear speech.
-2. Leave `voice.enabled = true` in `config/smartvillagers/config.toml` (the default).
-3. Stand near a villager. Nearby players hear a built-in villager voice through Simple Voice Chat, at `voice.range` (or `proximity.responseRadius` when range is `0`).
-
-**Languages:** there is no separate TTS language setting. Villagers answer in the same language you used in chat. The AI prompt also receives your Minecraft client language (for example `en_us`, `fr_fr`, `ja_jp`). Spoken audio uses that same reply text.
-
-Without Simple Voice Chat, or with `voice.enabled = false`, villagers stay text-only. The log prints this **once** on startup. `voice.fallbackToText = true` (default) still shows chat even when speech plays.
-
-On **Windows**, replies are read aloud with the system TTS voice (SAPI) through Simple Voice Chat. On other OSes, a built-in villager voice is used. Unmute the **Smart Villagers** category in Simple Voice Chat if you hear nothing.
-
-## Installation
-
-1. Install the loader for your file (Fabric, Forge, or NeoForge). Fabric also needs [Fabric API](https://modrinth.com/mod/fabric-api) in `mods/`.
-2. Drop the matching Smart Villagers AI jar from [Releases](https://github.com/MeherBenSalem/CivilizationAI/releases) (or CurseForge / Modrinth) into `mods/`.
-3. Start the game or dedicated server **once**. The mod creates the settings file on first load (see below).
-4. Optionally add a DeepSeek key as described above. Then restart or run `/villagerai reload`.
-5. Walk up to a villager and chat normally. On first join you may be asked to accept AI privacy consent.
-
-## Config file (path and first-run)
-
-On first successful load the mod creates:
-
-```text
-<instance or server root>/config/smartvillagers/config.toml
-```
-
-That is the loader config directory (`FMLPaths.CONFIGDIR` on Forge/NeoForge, `FabricLoader.getConfigDir()` on Fabric) plus `smartvillagers/config.toml`.
-
-Examples:
-
-- Singleplayer / most launchers: the instance folder’s `config/smartvillagers/config.toml` (same folder that already has other mods’ configs).
-- Dedicated server: `<server>/config/smartvillagers/config.toml`.
-
-**First-run behavior** (from `SmartVillagersConfig.load()`):
-
-- The `config/smartvillagers/` directory is created if missing.
-- If `config.toml` does **not** exist, defaults are written and saved.
-- If `config.toml` already exists, it is loaded and **not** overwritten, except missing voice/API-key settings and provider compatibility settings are added during migration. Existing model/key/custom endpoint values are preserved.
-- Put a DeepSeek key in `ai.apiKey`, or override it with `DEEPSEEK_API_KEY` / `secrets.toml`.
-- `secrets.toml` is never created automatically.
-
-Generated defaults look like this (key order may vary):
+`config/smartvillagers/config.toml` (existing 1.x files gain the new keys on first load; nothing is renamed):
 
 ```toml
 [proximity]
 enabled = true
 hearingRadius = 12.0
 responseRadius = 16.0
-activationMode = "SMART"
+activationMode = "SMART"          # SMART, LOOK_AT, PREFIX, NAME, ALWAYS_NEARBY
 chatPrefix = "!"
 requirePrefix = false
+ignorePlayerToPlayerChat = true    # 2.0
 
 [display]
-mode = "CHAT"
+mode = "CHAT"                      # CHAT or ACTION_BAR
 cancelGlobalChatWhenTalking = false
+speechBubbles = true               # 2.0
 
 [privacy]
 requirePlayerOptIn = true
 
+[requests]                         # 2.0
+enabled = true
+maxActive = 3
+cooldownMinutes = 10
+reputationReward = 10              # vanilla minor positive gossip per finished request, 0 to 25
+
 [ai]
-provider = "DEEPSEEK"
-maxTokens = 2048
-tokenLimitParameter = "AUTO"
-endpointMode = "AUTO"
-maxReplyChars = 180
-playerCooldownMs = 3000
-globalRequestsPerMinute = 30
-maxConcurrent = 3
-thinkingDelayMinTicks = 20
-thinkingDelayMaxTicks = 60
-apiBaseUrl = "https://api.deepseek.com/chat/completions"
+provider = "DEEPSEEK"              # DEEPSEEK, NANOGPT, NANOGPT_SUBSCRIPTION, OPENAI, OPENROUTER, OLLAMA, LMSTUDIO, CUSTOM
 model = "deepseek-flash"
 apiKey = ""
+# ... endpoint, token and rate-limit settings: see docs/ai-providers.md
 
 [persona]
 allowPlayersEditPersona = false
@@ -149,61 +123,49 @@ range = 0.0
 fallbackToText = true
 ```
 
-`voice.range = 0` means “use `proximity.responseRadius`”. Existing 1.0.x configs get this section written on the next load if it is missing.
+## Commands
 
-After editing, run `/villagerai reload` or restart. `/villagerai status` shows whether a key is configured and which source was used (`environment`, `secrets.toml`, `config.toml`, or `none`), plus whether Simple Voice Chat is present. `/villagerai test` (op) forces a nearby villager to reply and prints identity, API, and voice diagnostics.
+| Command | Who | Purpose |
+|---------|-----|---------|
+| `/villagerai consent accept\|decline` | everyone | AI privacy consent |
+| `/villagerai requests` | everyone | Your open requests, progress and finished count |
+| `/villagerai request accept\|decline` | everyone | Answer the last offer (what the chat buttons run) |
+| `/villagerai request assign <villager> [fetch\|slay]` | op | Make a villager offer you a request |
+| `/villagerai persona get [villager]` | op, or everyone if allowed | Persona, standing, reputation, open request |
+| `/villagerai persona set name\|trait\|style\|backstory <text>` / `clear` | op, or everyone if allowed | Edit the nearest villager |
+| `/villagerai memory clear [villager]` | op | Forget chat, requests and news |
+| `/villagerai reload` / `status` / `debug` | op | Config reload and diagnostics |
+| `/villagerai test [villager]` | op | Force a reply and print AI, identity and voice diagnostics |
 
-## Usage
+## Data and compatibility
 
-- Walk up to a villager and chat normally.
-- Villager replies appear as proximity chat (or action bar, via config). If Simple Voice Chat is installed and voice is enabled, the same reply is also spoken to nearby players.
-- Admin / persona commands (not required for talking):
+- Villager data keeps the 1.x layout and adds one string, `smartvillagers.Village`; worlds and configs from 1.x load
+  as they are.
+- The per-world favour ledger is `<world>/smartvillagers/ledger.json`.
+- Consent choices are kept in `config/smartvillagers/consent.json`.
 
-| Command | Purpose |
-|---------|---------|
-| `/villagerai consent accept\|decline` | Privacy consent |
-| `/villagerai persona get [villager]` | Show persona |
-| `/villagerai persona set name\|trait\|style\|backstory <text>` | Edit looked-at villager |
-| `/villagerai persona clear` | Reset to defaults |
-| `/villagerai reload` | Reload config (op) |
-| `/villagerai status` | Status (op) |
-| `/villagerai test [villager]` | Force a reply and print AI / identity / voice diagnostics (op) |
-
-## Building
-
-```bash
-./gradlew buildAll
-```
-
-Release jars are collected into `all-jars/`. Each Minecraft workspace also has loader-specific `build/libs/` directories. Set `JAVA_HOME_17`, `JAVA_HOME_21` and `JAVA_HOME_25` for the full build.
+## Building and testing
 
 ```bash
-./gradlew :neoforge:runClient
-./gradlew :fabric:runClient
-./gradlew :forge:runClient
+tools/build_release.sh          # every workspace with its own JDK (17, 21, 25), tests included, jars into releases/
+cd 1.21.1 && ./gradlew build    # one workspace
 ```
 
-## Minecraft workspaces
+`tools/qa/run_matrix.sh` runs the in-game checks on every build (a dev server, a real client under Xvfb typing in
+chat, and a mock AI provider); see [CONTRIBUTING](CONTRIBUTING.md) and the [2.0.0 QA record](docs/QA-2.0.0.md).
 
 | Directory | Minecraft | Loaders |
-|--------|-----------|---------|
-| `1.21.1/` | 1.21.1 | Fabric, Forge, NeoForge |
+|-----------|-----------|---------|
 | `1.20.1/` | 1.20.1 | Fabric, Forge |
+| `1.21.1/` | 1.21.1 | Fabric, Forge, NeoForge |
+| `26.1.2/` | 26.1.2 | Fabric, NeoForge |
 | `26.2/` | 26.2 | Fabric, NeoForge |
 | `26.3/` | 26.3 | Fabric, NeoForge |
 
-## Store listings
+## Links
 
-Paste-ready CurseForge / Modrinth notes (not published from this repo): [docs/store-listing.md](docs/store-listing.md).
+[Discord](https://discord.gg/SAmd9fhNhr) · [Source and issues](https://github.com/MeherBenSalem/CivilizationAI) ·
+[Support us](https://nightbeam.dev/support) · Made by NightBeam Studio
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). By contributing you agree that your contributions are licensed under Apache-2.0.
-
-## Security
-
-See [SECURITY.md](.github/SECURITY.md).
-
-## License
-
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the [Apache License 2.0](LICENSE). Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).
+Security: see [SECURITY.md](.github/SECURITY.md).

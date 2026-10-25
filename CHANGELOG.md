@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0 — The Village Square Update
+
+- Village requests: ask a villager for work, accept in chat or with [Accept], finish it for emeralds, XP and vanilla
+  positive gossip. 13 professions, monster hunts, `/villagerai requests`.
+- Gossip network and standing: neighbours hear about finished requests; strangers, friends, heroes; hurt villagers
+  refuse work.
+- Speech bubbles above villagers (vanilla text displays), with a "thinking" bubble.
+- Three advancements; a per-world favour ledger.
+- Richer AI prompt and built-in dialogue; villagers ignore player-to-player chat.
+- Minecraft 26.1.2 (Fabric, NeoForge); NeoForge 26.2.0.93 / 26.3.0.97; unified jar names; mod icon.
+
+Full notes: [patchnotes/2.0.0.md](patchnotes/2.0.0.md).
+
 ## 1.1.6
 
 - Add Minecraft 26.3 support on Fabric and NeoForge, matching the existing 26.2 MultiLoader workspace.
