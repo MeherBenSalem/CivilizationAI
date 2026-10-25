@@ -6,7 +6,7 @@
 #   CURSEFORGE_TOKEN
 #   CURSEFORGE_API_KEY
 #
-# Repo variables:
+# Repo variables (optional; default to this project's ids):
 #   MODRINTH_ID      (l9oZCCPS)
 #   CURSEFORGE_ID    (1567718)
 #
@@ -185,8 +185,8 @@ jobs:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
-          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           VERSION: ${{ steps.ver.outputs.version }}
           JAR_LIST: ${{ steps.jars.outputs.list }}
           CHANGELOG_FILE: PATCH_NOTES.md
@@ -194,7 +194,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${MODRINTH_ID:-}" && test -n "${CURSEFORGE_ID:-}"
+          if [ -z "${MODRINTH_ID:-}" ] || [ -z "${CURSEFORGE_ID:-}" ]; then
+            echo "MODRINTH_ID and CURSEFORGE_ID must be set" >&2
+            exit 1
+          fi
           node <<'NODE'
           const fs = require('fs');
           const path = require('path');
@@ -354,7 +357,7 @@ jobs:
         continue-on-error: true
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
         shell: bash
         run: |
           set -euo pipefail
