@@ -13,7 +13,7 @@ provider, a local model, or no AI at all
 Version 2.0, **The Village Square Update**, makes talking to villagers part of the game instead of a novelty:
 
 - **Village requests**: ask a villager for work in your own words, accept, finish it, get paid in emeralds and XP
-- **Reputation and gossip**: finished requests improve your vanilla reputation (better prices); neighbours hear about
+- **Reputation and gossip**: finished requests improve your vanilla reputation (which can lower prices); neighbours hear about
   what you did and bring it up; villagers you have hurt won't give you work
 - **Speech bubbles** above the villager who is talking, and a "..." bubble while the AI thinks
 - **Three advancements**, from your first chat to Hero of the Village Square
@@ -55,8 +55,9 @@ village. A card in chat shows the terms with **[Accept]** and **[Decline]**; you
 
 ![Word gets around](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/card-reputation.png)
 
-Villagers read the reputation Minecraft already keeps for you. A finished request adds the same positive gossip that
-trading does, so prices can drop, and villagers pass gossip to each other. Neighbours within 48 blocks hear about the
+Villagers read the reputation Minecraft already keeps for you. A finished request adds vanilla "minor positive"
+gossip about you (the kind curing a zombie villager also earns), which counts towards the reputation that sets trade
+prices, and villagers pass gossip to each other. Neighbours within 48 blocks hear about the
 job ("I heard you brought 16 wheat for Kael the farmer") and bring it up when you talk to them.
 
 Every villager treats you as a **stranger**, a **friend** (after a favour or good trading) or, after ten favours, a
@@ -67,7 +68,7 @@ gossip fades.
 
 ![See who's talking](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/card-bubbles.png)
 
-Replies float above the head of the villager who said them, under its name. While the AI is thinking you see "...",
+Replies float above the head of the villager who said them, headed by its name. While the AI is thinking you see "...",
 then the answer, for a few seconds depending on its length. Bubbles are vanilla text displays riding the villager, so
 everyone standing nearby sees the conversation. Turn them off with `display.speechBubbles = false`.
 

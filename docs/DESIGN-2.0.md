@@ -47,7 +47,7 @@ long-running wishes on our own page (its roadmap is the most-asked list). Recurr
 |-------------|-------|-----|
 | Talking has consequences | nothing changes | **Village requests**: ask "any work for me?", the villager offers a profession-themed job (bring items or defeat mobs), you accept by saying yes or clicking [Accept], and finishing it pays emeralds and XP |
 | Works without a key | 17 generic lines | Requests are fully playable without AI. Local dialogue gets profession small talk, reacts to night, rain, standing and news, and the duplicated name is gone |
-| Reputation | a rapport counter only the AI saw | Uses vanilla reputation: finished requests add vanilla positive gossip (better prices; villagers share gossip); villagers you hurt refuse work and say so |
+| Reputation | a rapport counter only the AI saw | Uses vanilla reputation: finished requests add vanilla minor-positive gossip (part of the reputation that sets prices; villagers share gossip); villagers you hurt refuse work and say so |
 | Gossip network | roadmap item | Neighbours within 48 blocks hear about a finished request and bring it up (AI prompt and local dialogue) |
 | Renown | none | A per-world ledger of favours: villagers everywhere treat you as stranger, friend or hero; three advancements (Smart Villagers, A Favor for a Friend, Hero of the Village Square) |
 | See who talks | chat only | **Speech bubbles** above the villager (vanilla text displays riding it: every player sees them, no client mod), a "..." bubble while the AI thinks |
@@ -74,8 +74,8 @@ gameplay without making the AI responsible for it:
   shows the terms with [Accept] and [Decline].
 * **Progress** is measured from the game itself: items in your inventory, or your vanilla kill statistics since you
   accepted. No event hooks per loader, identical on every version.
-* **Finishing** takes the items, pays emeralds and XP, adds vanilla minor-positive gossip (the same gossip trading
-  creates; it lowers prices and spreads between villagers), records a favour in the world's ledger, grants
+* **Finishing** takes the items, pays emeralds and XP, adds vanilla minor-positive gossip (part of the
+  reputation that sets trade prices; it spreads between villagers), records a favour in the world's ledger, grants
   advancements, and tells the neighbours.
 * **Limits**: three open requests per player, a ten-minute cooldown per villager, offers withdrawn after two minutes,
   no work from villagers you have hurt (vanilla reputation -30 or lower), no work from nitwits or unemployed villagers.

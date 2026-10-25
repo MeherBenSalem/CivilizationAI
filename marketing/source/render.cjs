@@ -171,7 +171,7 @@ const assets = {
 
   'card-reputation': () => card({
     kicker: 'Reputation & gossip', title: 'Word gets<br>around',
-    points: ['Finished requests add vanilla positive gossip: villagers trade it and it lowers prices',
+    points: ['Finished requests add vanilla positive gossip: it counts towards trade prices and spreads',
       'Neighbours hear what you did and bring it up', 'Hurt a villager and the village won’t give you work',
       'Ten favours make you a hero to every villager in the world'],
     art: `${photo('gossip.jpg', [0, 120, 1500, 960], 900)}<div style="margin-top:28px">${standingLadder()}</div>` }),

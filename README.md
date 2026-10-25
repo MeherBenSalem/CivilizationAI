@@ -34,7 +34,8 @@ hear villagers speak.
   vanilla text display that rides the villager, so everyone nearby sees it.
 - **Village requests**: ask "any work for me?" (or "need help?", "¿tienes trabajo?", "as-tu une quête ?"...). Each of
   the 13 professions wants its own things, and about a third of requests are monster hunts. Accept by saying yes or
-  clicking [Accept], then come back when it's done: emeralds, XP, vanilla positive gossip (better prices) and a
+  clicking [Accept], then come back when it's done: emeralds, XP, vanilla positive gossip (part of the reputation that
+  sets trade prices) and a
   favour in the world's ledger.
 - **Reputation and gossip**: villagers read vanilla reputation. Hurt one and it will not give you work (and, as in
   vanilla, its gossip about you spreads to its neighbours). Neighbours within 48 blocks hear about a finished request
