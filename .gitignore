@@ -50,3 +50,6 @@ all-jars/
 dist/
 scripts/__pycache__/
 
+
+target/
+.idea/
