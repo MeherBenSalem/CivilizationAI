@@ -1,5 +1,9 @@
 ![Smart Villagers AI](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/banner.png)
 
+**[Discord](https://discord.gg/TJc3CxR4jK) · [The modpack](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy) · [Support NightBeam](https://nightbeam.dev/support) · [NightBeam Pro](https://nightbeam.dev/memberships) · [All projects](https://nightbeam.dev/projects)**
+
+> **Featured in [Remnants: Ashen Legacy](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy)**, NightBeam's story-driven soulslike RPG modpack.
+
 **Villagers who talk back, remember you and ask for your help.** Walk up to a villager and chat normally. It answers
 in character, in a speech bubble above its head, with the AI of your choice or with built-in dialogue when you have
 none. Ask it for work and you get a real job: bring the harvest in, fetch iron for the forge, clear the zombies off
@@ -16,7 +20,7 @@ Version 2.0, **The Village Square Update**, makes talking to villagers part of t
 - **Reputation and gossip**: finished requests improve your vanilla reputation (which can lower prices); neighbours hear about
   what you did and bring it up; villagers you have hurt won't give you work
 - **Speech bubbles** above the villager who is talking, and a "..." bubble while the AI thinks
-- **Three advancements**, from your first chat to Hero of the Village Square
+- **Three advancements**, from your opening chat to Hero of the Village Square
 - **Smarter context**: biome, raids, nearby monsters, what you're holding, your standing and any open request
 - **Better without AI**: the built-in dialogue now talks shop, notices night and rain, and passes on village news
 - **Better manners**: villagers no longer answer messages meant for another player
@@ -82,7 +86,7 @@ no provider, requests, reputation, gossip and bubbles all still work with the bu
 
 - The villager's prompt includes its persona and profession, your last conversations, the biome, time and weather,
   raids and nearby monsters, what you're holding, your standing, news it heard and any open request
-- The AI only words the reply. Offers, progress and payments are decided by the mod, so nobody can talk a villager
+- The AI just words the reply. Offers, progress and payments are decided by the mod, so nobody can talk a villager
   into handing out free emeralds
 - Players accept AI consent once before their chat is sent to a provider; keys and prompts are never written to logs
 - Rate limits per player and per minute, a concurrency cap and a reply length limit keep costs predictable
@@ -123,7 +127,7 @@ model = "deepseek-flash"
 apiKey = ""
 ```
 
-Existing 1.x configs get the new keys on first start; nothing is renamed. The full list is in the
+Existing 1.x configs get the new keys when the new version starts; nothing is renamed. The full list is in the
 [README](https://github.com/MeherBenSalem/CivilizationAI#configuration) and the
 [provider guide](https://github.com/MeherBenSalem/CivilizationAI/blob/main/docs/ai-providers.md).
 
@@ -147,18 +151,18 @@ single player. Simple Voice Chat is optional (server and clients) for spoken rep
 **Do I need an AI key?** No. Without one, villagers use the built-in dialogue, and requests, reputation, gossip and
 speech bubbles work exactly the same. With a key (or a local model) their replies are written by the AI.
 
-**Does it cost money?** Only if your AI provider charges. Ollama and LM Studio run models on your own computer.
+**Does it cost money?** Not unless your AI provider charges. Ollama and LM Studio run models on your own computer.
 
-**Can the AI give me items or change prices?** No. The AI only writes what the villager says. Requests and rewards
+**Can the AI give me items or change prices?** No. The AI just writes what the villager says. Requests and rewards
 come from the mod, which tells the AI what happened so the words match.
 
 **Do I need a new world?** No. 1.x villagers keep their names, personas and memories, and 1.x configs are updated in
 place.
 
 **Will villagers answer when I talk to my friends?** Not when your message names another player who is online
-(configurable). You can also require a prefix, or only answer villagers you look at.
+(configurable). You can also require a prefix, or answer just the villagers you look at.
 
-**Is my chat sent anywhere?** Only to the AI provider you configure, and only after each player accepts with
+**Is my chat sent anywhere?** To the AI provider you configure and nowhere else, and not before each player accepts with
 `/villagerai consent accept`.
 
 ![Gallery](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/header-gallery.png)
@@ -173,4 +177,14 @@ place.
 
 ![Divider](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/divider.png)
 
-[Discord](https://discord.gg/SAmd9fhNhr) · [Source and issues](https://github.com/MeherBenSalem/CivilizationAI) · [Support us](https://nightbeam.dev/support) · Made by NightBeam Studio
+---
+
+### More from NightBeam Studio
+
+- **[Remnants: Ashen Legacy](https://www.curseforge.com/minecraft/modpacks/remnants-ashen-legacy)**: the story-driven soulslike RPG modpack built on NightBeam's mods
+- **[Premium server plugins](https://nightbeam.dev/store)**: anti-cheat, ranked PvP, SMP setups and more on BuiltByBit
+- **[NightBeam Pro](https://nightbeam.dev/memberships)**: the model library and NightBeam Forge credits, from $5 a month
+- **[Discord](https://discord.gg/TJc3CxR4jK)**: support, bug reports, suggestions and early looks
+- **[Support NightBeam](https://nightbeam.dev/support)**: help keep every mod free
+
+**Follow:** [YouTube](https://www.youtube.com/@nightbeamstudio) · [Instagram](https://www.instagram.com/nightbeamstudio/) · [X](https://x.com/NightBeamLLC) · [Facebook](https://www.facebook.com/profile.php?id=61574823331471) · [Source and issues](https://github.com/MeherBenSalem/CivilizationAI)
