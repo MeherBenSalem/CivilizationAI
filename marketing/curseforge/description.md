@@ -1,6 +1,6 @@
 ![Smart Villagers AI](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/banner.png)
 
-**[Discord](https://discord.gg/TJc3CxR4jK) · [Source and issues](https://github.com/MeherBenSalem/CivilizationAI)**
+**[Docs](https://nightbeam.dev/docs/smart-villagers-ai) · [Discord](https://discord.gg/TJc3CxR4jK) · [Source and issues](https://github.com/MeherBenSalem/CivilizationAI)**
 
 **Villagers who talk back, remember you and ask for your help.** Walk up to a villager and chat normally. It answers
 in character, in a speech bubble above its head, with the AI of your choice or with built-in dialogue when you have
