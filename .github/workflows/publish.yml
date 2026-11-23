@@ -13,7 +13,7 @@
 # It runs before building and again right before the upload, whatever the inputs below say.
 #
 # Repo secrets: MODRINTH_TOKEN, CURSEFORGE_TOKEN, CURSEFORGE_API_KEY
-# Repo variables: MODRINTH_ID, CURSEFORGE_ID
+# Repo variables: MODRINTH_ID (l9oZCCPS), CURSEFORGE_ID (1567718); the workflow falls back to these IDs if the variables are unset
 #
 # Prove it first:  gh workflow run publish.yml -f version=2.0.1 -f dry_run=true
 # Release:         gh workflow run publish.yml -f version=2.0.1   (or: git tag v2.0.1 && git push origin v2.0.1)
@@ -96,8 +96,8 @@ jobs:
 
       - name: Same-day guard
         env:
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
-          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           PUBLISH_WORKFLOW: publish.yml
@@ -227,8 +227,8 @@ jobs:
       - name: Same-day guard (again, right before upload)
         if: ${{ inputs.dry_run != 'true' }}
         env:
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
-          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           PUBLISH_WORKFLOW: publish.yml
@@ -242,8 +242,8 @@ jobs:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
-          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
+          CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           VERSION: ${{ steps.ver.outputs.version }}
           JAR_LIST: ${{ steps.jars.outputs.list }}
           CHANGELOG_FILE: PATCH_NOTES.md
@@ -411,7 +411,7 @@ jobs:
         continue-on-error: true
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID }}
+          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
         shell: bash
         run: |
           set -euo pipefail
