@@ -10,8 +10,7 @@ const { chromium } = require('playwright');
 const RELEASE = { version: '2.0', name: 'The Village Square Update' };
 const VERSIONS = [
   { minecraft: '1.20.1', loaders: ['Fabric', 'Forge'] },
-  { minecraft: '1.21.1', loaders: ['Fabric', 'Forge', 'NeoForge'] },
-  { minecraft: '26.1.2', loaders: ['Fabric', 'NeoForge'] },
+  { minecraft: '1.21.1', loaders: ['Fabric', 'NeoForge'] },
   { minecraft: '26.2', loaders: ['Fabric', 'NeoForge'] },
   { minecraft: '26.3', loaders: ['Fabric', 'NeoForge'] },
 ];
@@ -190,7 +189,7 @@ const assets = {
     art: photo('advancements.jpg', [570, 300, 780, 470], 900) }),
 
   'card-everywhere': () => card({
-    kicker: 'Everywhere', title: 'Every loader,<br>five versions',
+    kicker: 'Everywhere', title: 'Every loader,<br>four versions',
     points: ['Fabric, Forge and NeoForge', 'Bubbles and request cards are built from vanilla text displays and chat',
       'Optional spoken replies through Simple Voice Chat', '1.x worlds and configs carry over'],
     art: `<div style="display:grid;grid-template-columns:repeat(${VERSIONS.length},1fr);gap:14px">${VERSIONS.map((v) => `

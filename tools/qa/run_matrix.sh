@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Runs villager_checks.py on a fresh world for each build, with a real dev server, a real client under Xvfb and the
 # mock AI provider:
-#   tools/qa/run_matrix.sh [ws:loader ...]     (default: all eleven)
+#   tools/qa/run_matrix.sh [ws:loader ...]     (default: all eight)
 # Results go to $QA_LOGS/results/<ws>-<loader>.txt; a summary line per build is printed.
 set -u
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 LOGS=${QA_LOGS:-/tmp/sv-qa}
 mkdir -p "$LOGS/results"
-BUILDS=${*:-"1.20.1:fabric 1.20.1:forge 1.21.1:fabric 1.21.1:forge 1.21.1:neoforge 26.1.2:fabric 26.1.2:neoforge 26.2:fabric 26.2:neoforge 26.3:fabric 26.3:neoforge"}
+BUILDS=${*:-"1.20.1:fabric 1.20.1:forge 1.21.1:fabric 1.21.1:neoforge 26.2:fabric 26.2:neoforge 26.3:fabric 26.3:neoforge"}
 QA="$ROOT/tools/qa"
 export DISPLAY=${DISPLAY:-:1}
 

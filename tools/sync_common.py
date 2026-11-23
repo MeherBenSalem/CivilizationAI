@@ -3,7 +3,7 @@
 the few names that moved between versions. Version-specific files are listed in KEEP and never overwritten; put
 anything that differs between versions behind platform/Mc.java (one copy per workspace) instead.
 
-  python3 tools/sync_common.py [workspace ...]      (default: 1.20.1 26.1.2 26.2 26.3)
+  python3 tools/sync_common.py [workspace ...]      (default: 1.20.1 26.2 26.3)
 """
 from __future__ import annotations
 
@@ -27,7 +27,6 @@ KEEP_ALL = {
 KEEP_TESTS = {'voice/VoiceStartupLogTest.java'}
 KEEP = {
     '1.20.1': {'platform/Mc.java'},
-    '26.1.2': KEEP_ALL,
     '26.2': KEEP_ALL,
     '26.3': KEEP_ALL,
 }
@@ -65,7 +64,7 @@ def sync(version: str):
 
 
 def main():
-    for version in sys.argv[1:] or ['1.20.1', '26.1.2', '26.2', '26.3']:
+    for version in sys.argv[1:] or ['1.20.1', '26.2', '26.3']:
         sync(version)
 
 

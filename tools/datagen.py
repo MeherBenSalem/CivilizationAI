@@ -19,7 +19,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 NS = 'smartvillagers'
-VERSIONS = ['1.20.1', '1.21.1', '26.1.2', '26.2', '26.3']
+VERSIONS = ['1.20.1', '1.21.1', '26.2', '26.3']
 
 # id: (parent, icon item, title, description, frame, experience)
 ADVANCEMENTS = {

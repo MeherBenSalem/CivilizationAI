@@ -4,12 +4,13 @@ Thanks for helping improve Smart Villagers AI.
 
 ## How to contribute
 
-1. Fork the repository and create a feature branch from `main`.
+1. Fork the repository and create a branch from `main`.
 2. Make the change in `1.21.1/common/` (the reference workspace), then run `python3 tools/sync_common.py` to copy it to
-   `1.20.1/`, `26.1.2/`, `26.2/` and `26.3/`. Anything whose name or shape differs between Minecraft versions belongs
+   `1.20.1/`, `26.2/` and `26.3/`. Anything whose name or shape differs between Minecraft versions belongs
    in `platform/Mc.java`, which has one copy per workspace.
-3. Build every workspace you touched (`./gradlew build` from that folder, with Java 17 for 1.20.1, 21 for 1.21.1 and
-   25 for 26.x), or all of them with `tools/build_release.sh`. This also runs the unit tests.
+3. Build every workspace you touched (`./gradlew build` from that folder: Gradle on Java 21 for 1.20.1 and 1.21.1,
+   Java 25 for 26.x), or all four with `./gradlew buildAll` from the root (the 8 loader jars land in `releases/`).
+   This also runs the unit tests.
 4. Run the in-game checks (below) on the builds you changed.
 5. Open a pull request describing the change and how you tested it. Do not commit API keys, `secrets.toml` or
    personal paths.
@@ -25,7 +26,7 @@ Each workspace is a MultiLoader Gradle build:
     `RequestService` applies it in the world.
   - `display/`: chat lines and speech bubbles. `villager/`: persona, memory, context. `voice/`: optional speech.
   - `platform/Mc.java`: the version-specific calls. `mixin/`: villager data and text-display setters.
-- `fabric/`, `forge/`, `neoforge/`: entry points and event wiring only.
+- `fabric/`, `forge/` (1.20.1 only), `neoforge/` (1.21.1 and 26.x): entry points and event wiring only.
 
 Generated, not edited by hand:
 
@@ -58,7 +59,7 @@ by saying yes, progress, finished (items or kills, emeralds, gossip, advancement
 hurting a villager, the cooldown, `/villagerai requests`, Hero of the Village Square after ten requests, loading
 1.x villager data, removal of an orphaned bubble, and a clean server log.
 
-`tools/qa/run_matrix.sh` does all of that on a fresh world for every build (eleven):
+`tools/qa/run_matrix.sh` does all of that on a fresh world for every build (eight):
 
 ```bash
 tools/qa/run_matrix.sh                         # all builds; results in /tmp/sv-qa/results/

@@ -2,12 +2,16 @@
 
 ## Supported versions
 
-| Version branch | Supported |
-|----------------|-----------|
-| `main` (1.21.1) | Yes |
-| `1.20.1` | Yes |
-| `26.2` | Best effort (beta Minecraft) |
-| `26.3` | Best effort (beta Minecraft) |
+Security fixes go into the latest release, built from `main` for every supported target:
+
+| Minecraft | Loaders | Supported |
+|-----------|---------|-----------|
+| 1.20.1 | Fabric, Forge | Yes |
+| 1.21.1 | Fabric, NeoForge | Yes |
+| 26.2 | Fabric, NeoForge | Yes |
+| 26.3 | Fabric, NeoForge | Yes |
+
+Older releases, and Minecraft versions or loaders not listed here, do not receive fixes.
 
 ## Reporting a vulnerability
 

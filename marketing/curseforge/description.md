@@ -7,7 +7,7 @@ in character, in a speech bubble above its head, with the AI of your choice or w
 none. Ask it for work and you get a real job: bring the harvest in, fetch iron for the forge, clear the zombies off
 the fields. Finish it and you are paid in emeralds, the villager thinks better of you, and the whole street hears about it.
 
-Fabric, Forge and NeoForge · Minecraft 1.20.1, 1.21.1, 26.1.2, 26.2 and 26.3 · works with any OpenAI-compatible AI
+Fabric, Forge and NeoForge · Minecraft 1.20.1, 1.21.1, 26.2 and 26.3 · works with any OpenAI-compatible AI
 provider, a local model, or no AI at all
 
 ![What's new in 2.0](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/header-whats-new.png)
@@ -22,7 +22,7 @@ Version 2.0, **The Village Square Update**, makes talking to villagers part of t
 - **Smarter context**: biome, raids, nearby monsters, what you're holding, your standing and any open request
 - **Better without AI**: the built-in dialogue now talks shop, notices night and rain, and passes on village news
 - **Better manners**: villagers no longer answer messages meant for another player
-- **Minecraft 26.1.2**, and your 1.x worlds and configs carry over
+- **Your 1.x worlds and configs carry over**
 
 ![Village requests](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/header-requests.png)
 
@@ -131,13 +131,12 @@ Existing 1.x configs get the new keys when the new version starts; nothing is re
 
 ![Downloads and compatibility](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/header-compatibility.png)
 
-![Every loader, five versions](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/card-everywhere.png)
+![Every loader, four versions](https://raw.githubusercontent.com/MeherBenSalem/CivilizationAI/main/marketing/images/card-everywhere.png)
 
 | Minecraft | Java | Loaders |
 |-----------|------|---------|
 | 1.20.1 | 17+ | Fabric (with Fabric API), Forge 47 |
-| 1.21.1 | 21+ | Fabric (with Fabric API), Forge 52, NeoForge |
-| 26.1.2 | 25+ | Fabric (with Fabric API), NeoForge |
+| 1.21.1 | 21+ | Fabric (with Fabric API), NeoForge |
 | 26.2 | 25+ | Fabric (with Fabric API), NeoForge 26.2.0.93 or newer |
 | 26.3 | 25+ | Fabric (with Fabric API), NeoForge 26.3.0.97 or newer |
 

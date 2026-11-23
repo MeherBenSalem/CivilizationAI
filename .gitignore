@@ -1,55 +1,78 @@
-# eclipse
-bin
-*.launch
-.settings
-.metadata
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Eclipse
+.metadata/
+.settings/
 .classpath
 .project
+bin/
+*.launch
 
-# idea
-out
-*.ipr
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
-.idea/*
-!.idea/scopes
+*.ipr
+out/
 
-# vscode
+# VS Code / Cursor
 .vscode/
+*.code-workspace
+.cursor/
 
-# gradle
-build
-.gradle
-**/build/
-**/.gradle/
-
-# runs
-run
-runs
-**/runs/
-
-# logs / OS
-*.log
-logs/
+# MacOS
 .DS_Store
-Thumbs.db
 
-# secrets / local env
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+build_log.txt
+build_output.txt
+dep_warning.txt
+debug.log
+replay_pid*.log
+
+# Run folders
+run/
+runs/
+/test/
+
+# Archives / built artifacts (do not commit jars, except the release jars the publish workflow uploads)
+*.jar
+!releases/*.jar
+*.war
+*.zip
+*.tar
+*.tar.gz
+dist/
+all-jars/
+target/
+
+# Keep the Gradle wrapper jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Env / secrets
 .env
 .env.*
+!.env.example
 secrets.toml
 **/secrets.toml
 config/smartvillagers/
 
-# generated
+# Generated
 **/src/generated/
-replay_pid*.log
 
-# collected release jars
-all-jars/
-dist/
-scripts/__pycache__/
+# Temp
+input.txt
+output.txt
 
-
-target/
-.idea/
+# Python
+__pycache__/
