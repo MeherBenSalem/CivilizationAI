@@ -176,11 +176,11 @@ chat, and a mock AI provider); see [CONTRIBUTING](CONTRIBUTING.md) and the [2.0.
 ## Releasing
 
 CI (`.github/workflows/ci.yml`) builds all 8 jars on every push to `main` that touches the build. Publishing to
-Modrinth and CurseForge is `.github/workflows/publish.yml`, run by hand (`version`, `dry_run`) or by a `v*.*.*` tag;
+CurseForge is `.github/workflows/publish.yml`, run by hand (`version`, `dry_run`) or by a `v*.*.*` tag;
 it never runs on a plain push. It refuses a second release of the mod on the same day (Africa/Tunis), takes the jars
 from `releases/`, the GitHub Release or a build from source, and fails unless exactly the 8 jars are found. It needs
-the secrets `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, `CURSEFORGE_API_KEY` and the variables `MODRINTH_ID`,
-`CURSEFORGE_ID`.
+the secrets `CURSEFORGE_TOKEN` (upload token) and `CURSEFORGE_API_KEY` (Core API key) and the variable
+`CURSEFORGE_ID`. NightBeam publishes to CurseForge only; the Modrinth page stays up but gets no new versions.
 
 ## Links
 

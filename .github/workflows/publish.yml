@@ -1,4 +1,4 @@
-# Publish Smart Villagers AI to Modrinth + CurseForge (NightBeam convention).
+# Publish Smart Villagers AI to CurseForge (NightBeam convention: CurseForge only since 24 Nov 2026).
 #
 # Runs only by hand (workflow_dispatch) or on a v*.*.* tag; a push to main never releases anything.
 # Uses exactly the 8 convention jars for the version, in this order of sources:
@@ -9,11 +9,12 @@
 # Jar names are read by .github/scripts/detect-jar-meta.js (loader + Minecraft version per jar).
 #
 # Same-day guard (NightBeam convention): scripts/same_day_guard.mjs stops the run if this mod already had a
-# release today (Africa/Tunis day), on Modrinth, CurseForge or an earlier Publish run. A dry run only reports it.
+# release today (Africa/Tunis day), on CurseForge or in an earlier Publish run. A dry run only reports it.
 # It runs before building and again right before the upload, whatever the inputs below say.
 #
-# Repo secrets: MODRINTH_TOKEN, CURSEFORGE_TOKEN, CURSEFORGE_API_KEY
-# Repo variables: MODRINTH_ID (l9oZCCPS), CURSEFORGE_ID (1567718); the workflow falls back to these IDs if the variables are unset
+# Repo secrets: CURSEFORGE_TOKEN (upload token), CURSEFORGE_API_KEY (Core API key, for the same-day guard)
+# Repo variable: CURSEFORGE_ID (1567718); the workflow falls back to this ID if the variable is unset
+# The existing Modrinth project stays up as it is but gets no new versions.
 #
 # Prove it first:  gh workflow run publish.yml -f version=2.0.1 -f dry_run=true
 # Release:         gh workflow run publish.yml -f version=2.0.1   (or: git tag v2.0.1 && git push origin v2.0.1)
@@ -33,17 +34,9 @@ on:
         description: Skip uploads if true
         required: false
         default: "false"
-      platforms:
-        description: "modrinth, curseforge, or both (the same-day guard still applies)"
-        required: false
-        default: "both"
       minecraft_version:
         description: "Optional: upload only this Minecraft version's jars (1.20.1, 1.21.1, 26.2 or 26.3); the same-day guard still applies"
         required: false
-      update_listing:
-        description: "Also update the Modrinth description, summary and icon from marketing/ (true/false)"
-        required: false
-        default: "false"
 
 # One Publish at a time per repo, so two runs can't both pass the same-day guard.
 concurrency:
@@ -96,12 +89,11 @@ jobs:
 
       - name: Same-day guard
         env:
-          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
           CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           PUBLISH_WORKFLOW: publish.yml
-          UPLOAD_STEP: Upload Modrinth + CurseForge
+          UPLOAD_STEP: Upload CurseForge|Upload Modrinth + CurseForge
           DRY_RUN: ${{ inputs.dry_run }}
         run: node scripts/same_day_guard.mjs
 
@@ -227,39 +219,32 @@ jobs:
       - name: Same-day guard (again, right before upload)
         if: ${{ inputs.dry_run != 'true' }}
         env:
-          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
           CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           PUBLISH_WORKFLOW: publish.yml
-          UPLOAD_STEP: Upload Modrinth + CurseForge
+          UPLOAD_STEP: Upload CurseForge|Upload Modrinth + CurseForge
           DRY_RUN: ${{ inputs.dry_run }}
         run: node scripts/same_day_guard.mjs
 
-      - name: Upload Modrinth + CurseForge
+      - name: Upload CurseForge
         if: ${{ inputs.dry_run != 'true' }}
         env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
           CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID || '1567718' }}
           VERSION: ${{ steps.ver.outputs.version }}
           JAR_LIST: ${{ steps.jars.outputs.list }}
           CHANGELOG_FILE: PATCH_NOTES.md
-          PLATFORMS: ${{ inputs.platforms || 'both' }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${MODRINTH_ID:-}" && test -n "${CURSEFORGE_ID:-}"
+          test -n "${CURSEFORGE_ID:-}" || { echo "Set the repo variable CURSEFORGE_ID" >&2; exit 1; }
           node <<'NODE'
           const fs = require('fs');
           const path = require('path');
           const { detectRequired, LOADER_IDS } = require('./.github/scripts/detect-jar-meta.js');
           const version = process.env.VERSION;
-          const platforms = (process.env.PLATFORMS || 'both').toLowerCase();
-          const doModrinth = platforms === 'both' || platforms === 'modrinth';
-          const doCurse = platforms === 'both' || platforms === 'curseforge';
           const jars = process.env.JAR_LIST.split(/\n/).map(s => s.trim()).filter(Boolean);
           if (!jars.length) throw new Error('No jars to upload');
           let changelog = `Release ${version}`;
@@ -293,49 +278,6 @@ jobs:
           }
 
           (async () => {
-            if (doModrinth) {
-              for (const jar of jars) {
-                // Must parse MC from filename — never default (26.1.2 was once mis-tagged as 1.21.1).
-                const { loader, gv } = detectRequired(jar);
-                const gameVersions = [gv];
-                // Fabric jars need Fabric API (Modrinth project P7dR8mSH); Simple Voice Chat (9eGKb6K1) is optional.
-                const dependencies = [{ project_id: '9eGKb6K1', dependency_type: 'optional' }];
-                if (loader === 'fabric') dependencies.unshift({ project_id: 'P7dR8mSH', dependency_type: 'required' });
-                const body = {
-                  name: `${version} ${loader} ${gameVersions[0]}`,
-                  version_number: `${version}+${loader}-${gameVersions[0]}`,
-                  changelog,
-                  dependencies,
-                  game_versions: gameVersions,
-                  version_type: 'release',
-                  loaders: [loader],
-                  featured: false,
-                  status: 'listed',
-                  project_id: process.env.MODRINTH_ID,
-                  file_parts: ['file_0'],
-                  primary_file: 'file_0',
-                };
-                const form = new FormData();
-                form.append('data', JSON.stringify(body));
-                form.append('file_0', new Blob([fs.readFileSync(jar)]), path.basename(jar));
-                const mrRes = await fetch('https://api.modrinth.com/v2/version', {
-                  method: 'POST',
-                  headers: { Authorization: process.env.MODRINTH_TOKEN },
-                  body: form,
-                });
-                const mrText = await mrRes.text();
-                if (!mrRes.ok) throw new Error('Modrinth ' + mrRes.status + ' ' + mrText.slice(0, 500));
-                console.log('Modrinth OK', path.basename(jar), 'game=' + gv, mrText.slice(0, 180));
-              }
-            } else {
-              console.log('Skipping Modrinth (platforms=' + platforms + ')');
-            }
-
-            if (!doCurse) {
-              console.log('Skipping CurseForge (platforms=' + platforms + ')');
-              return;
-            }
-
             // Prefer Upload API game/versions (matches upload token), fallback to CF Core API
             let flat = [];
             const uploadGv = await fetch('https://minecraft.curseforge.com/api/game/versions', {
@@ -406,35 +348,3 @@ jobs:
           NODE
 
       # CurseForge has no API for the project description: paste marketing/curseforge/description.md there by hand.
-      - name: Update Modrinth listing
-        if: ${{ inputs.update_listing == 'true' && inputs.dry_run != 'true' }}
-        continue-on-error: true
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          MODRINTH_ID: ${{ vars.MODRINTH_ID || 'l9oZCCPS' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const fs = require('fs');
-          (async () => {
-            const headers = { Authorization: process.env.MODRINTH_TOKEN };
-            const project = `https://api.modrinth.com/v2/project/${process.env.MODRINTH_ID}`;
-            const body = fs.readFileSync('marketing/modrinth/description.md', 'utf8');
-            const description = fs.readFileSync('marketing/modrinth/summary.txt', 'utf8').trim();
-            const res = await fetch(project, {
-              method: 'PATCH',
-              headers: { ...headers, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ body, description }),
-            });
-            if (!res.ok) throw new Error('Modrinth listing ' + res.status + ' ' + (await res.text()).slice(0, 300));
-            console.log('Modrinth description and summary updated');
-            const icon = await fetch(`${project}/icon?ext=png`, {
-              method: 'PATCH',
-              headers: { ...headers, 'Content-Type': 'image/png' },
-              body: fs.readFileSync('marketing/images/icon.png'),
-            });
-            if (!icon.ok) throw new Error('Modrinth icon ' + icon.status + ' ' + (await icon.text()).slice(0, 300));
-            console.log('Modrinth icon updated');
-          })().catch((e) => { console.error(e); process.exit(1); });
-          NODE
